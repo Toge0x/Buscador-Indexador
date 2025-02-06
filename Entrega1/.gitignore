@@ -1,0 +1,22 @@
+# Ignorar archivos de compilación y ejecutables
+*.o
+*.out
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.lo
+
+# Ignorar ejecutables generados
+mi_tokenizador
+
+# Ignorar archivos de texto y de salida del tokenizador
+*.txt
+*.tk
+
+# Ignorar archivos de depuración
+*.gch
+*.dSYM/
+vgcore.*
+core
