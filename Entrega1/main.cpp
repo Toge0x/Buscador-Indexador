@@ -9,7 +9,7 @@ int main() {
     std::string nombreSalida = "salida.txt";
 
     Tokenizador tokenizador;
-    tokenizador.Tokenizar(nombreEntrada, nombreSalida);
+    tokenizador.Tokenizar(nombreEntrada);
 
     return 0;
 }

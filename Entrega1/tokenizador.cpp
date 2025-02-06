@@ -12,8 +12,9 @@
     el campo delimiters se imprimirá con el string leído en el tokenizador
     (tras las modificaciones y eliminación de los caracteres repetidos correspondientes)
 */
-ostream& operator<<(ostream&, const Tokenizador& t){
-    cout << "DELIMITADORES: " << t.delimiters << " TRATA CASOS ESPECIALES: " << t.casosEspeciales << " PASAR A MINUSCULAS Y SIN ACENTOS: " << t.pasarAminuscSinAcentos;
+ostream& operator<<(ostream& os, const Tokenizador& t){
+    os << "DELIMITADORES: " << t.delimiters << " TRATA CASOS ESPECIALES: " << t.casosEspeciales << " PASAR A MINUSCULAS Y SIN ACENTOS: " << t.pasarAminuscSinAcentos;
+    return os;
 }
 
 /*
@@ -128,13 +129,11 @@ bool Tokenizador::Tokenizar(const string& i, const string& f) const{
             if(encontrarCaracterEnDelimitadores(caracter)){     // si es un delimitador
                 if(palabra.length() != 0){
                     salida << palabra;                              // printea la palabra
-                    cout << "He printeado la palabra: " << palabra << "\n";
                     palabra.clear();                                // limpiamos para la siguiente
                     salida << "\n";
                 }
             }else{
-                cout << "El caracter: " << caracter << " no está en la lista\n";
-                palabra += caracter;
+                palabra += caracter;                // concatenamos la palabra
             }
         }
 
@@ -164,7 +163,12 @@ y que contendrá una palabra en cada línea del fichero.
     - False en caso contrario enviando a cerr el mensaje correspondiente (p.ej. que no exista el archivo i)
 */
 bool Tokenizador::Tokenizar(const string & i) const{
-
+    bool correcto = false;
+    string nombreSalida = i + ".tk";
+    if(this->Tokenizar(i, nombreSalida)){
+        correcto = true;
+    }
+    return correcto;
 }
 
 /*
