@@ -1,5 +1,6 @@
 #include "tokenizador.h"
 #include <fstream>
+#include <sstream>
 
 /*
     FUNCIONES AMIGAS
@@ -122,7 +123,7 @@ bool Tokenizador::Tokenizar(const string& i, const string& f) const{
     char caracter;
 
     if(entrada.is_open() == false){
-        cerr << "El fichero no se ha podido abrir\n";
+        cerr << "El fichero no se ha podido abrir o no existe\n";
         return false;
     }else{
         while(entrada.get(caracter)){
@@ -135,6 +136,11 @@ bool Tokenizador::Tokenizar(const string& i, const string& f) const{
             }else{
                 palabra += caracter;                // concatenamos la palabra
             }
+        }
+
+        if(palabra.size() != 0){
+            salida << palabra;
+            palabra.clear();
         }
 
         entrada.close();
@@ -181,7 +187,18 @@ y que contendrá una palabra en cada línea del fichero leído en i.
       luego no se ha de interrumpir la ejecuci�n si hay alg�n archivo en i que no exista)
 */
 bool Tokenizador::TokenizarListaFicheros(const string& i) const{
-
+    bool correcto = false;
+    stringstream listaFicheros(i);
+    string fichero;
+    while(getline(listaFicheros, fichero, '\n')){
+        ifstream ficheroALeer(fichero);
+        if(this->Tokenizar(fichero)){
+            correcto = true;
+        }else{
+            return false;       // si uno falla interrumpir todo
+        }
+    }
+    return correcto;
 } 
 
 /*
@@ -201,12 +218,28 @@ Inicializa delimiters a nuevoDelimiters, filtrando que no se introduzcan delimit
 (de izquierda a derecha, en cuyo caso se eliminarían los que hayan sido repetidos por la derecha)
 */
 void Tokenizador::DelimitadoresPalabra(const string& nuevoDelimiters){
-
+    delimiters.clear();
+    for(int i = 0; i < nuevoDelimiters.size(); i++){
+        char delimitador = nuevoDelimiters[i];
+        size_t pos = delimiters.find_first_of(delimitador);
+        if(pos == string::npos){
+            i++;
+        }else{
+            delimiters.push_back(delimitador);
+        }
+    }
 }
 
 // Añade al final de "delimiters" los nuevos delimitadores que aparezcan en "nuevoDelimiters" (no se almacenarán caracteres repetidos)
-void Tokenizador::AnyadirDelimitadoresPalabra(const string& nuevoDelimiters){
-    
+void Tokenizador::AnyadirDelimitadoresPalabra(const string& nuevoDelimiters){   // falta revisarlo en casa
+    for(int i = 0; i < nuevoDelimiters.size(); i++){
+        size_t pos = nuevoDelimiters.find_first_of(this->delimiters);
+        if(pos == string::npos){        // ya está en el string de delimitadores
+            i++;
+        }else{
+            
+        }
+    }
 }
 
 // Devuelve "delimiters"
