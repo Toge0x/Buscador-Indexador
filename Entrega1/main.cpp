@@ -2,28 +2,22 @@
 #include <fstream>
 #include <list>
 #include <string>
-#include <locale>
 #include "tokenizador.h"
+#include <chrono>
+using namespace std;
+using namespace std::chrono;
 
 int main() {
-    std::locale loc("en_US.ISO8859-1"); // ISO 8859-1
-    std::locale::global(loc);
-    std::cout.imbue(loc);
+    Tokenizador t;
+    string tokenizar = "lista_ficheros.txt";
 
-    // prueba TokenizarListaFicheros(lista)
-    std::string listaFicheros = "lista1.txt\nlista2.txt";
+    auto start = high_resolution_clock::now();
 
-    // prueba TokenizarFicheros(input, output)
-    std::string nombreEntrada = "entrada.txt";
-    std::string nombreSalida = "salida.txt";
-
-    // prueba DelimitadoresPalabra(nuevosDelimitadores)
-    std::string nuevos = "894";
-
-    Tokenizador tokenizador;
-    cout << "Delimitadores actuales: " << tokenizador.DelimitadoresPalabra() << "\n";
-    tokenizador.DelimitadoresPalabra(nuevos);
-    cout << "Delimitadores nuevos: " << tokenizador.DelimitadoresPalabra() << "\n";
+    bool resultado = t.TokenizarListaFicheros(tokenizar);
     
+    auto stop = high_resolution_clock::now();
+    duration<double> duration = stop - start;
+    cout << "Tiempo de ejecución: " << duration.count() << " s" << endl;
+
     return 0;
 }

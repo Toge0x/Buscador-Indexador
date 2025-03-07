@@ -49,6 +49,4 @@ class Tokenizador {
             Si true pasará el token a minúsculas y quitará acentos, antes de realizar la tokenización
         */
         bool pasarAminuscSinAcentos;
-
-        bool encontrarCaracterEnDelimitadores(const char& c) const;
 };

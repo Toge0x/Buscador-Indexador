@@ -1,6 +1,7 @@
 #include "tokenizador.h"
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 
 /*
     FUNCIONES AMIGAS
@@ -30,21 +31,16 @@ ostream& operator<<(ostream& os, const Tokenizador& t){
     pasarAminuscSinAcentos a minuscSinAcentos;
 */
 Tokenizador::Tokenizador(const string& delimitadoresPalabra, const bool& kcasosEspeciales, const bool& minuscSinAcentos){
-    for(int i = 0; i < delimitadoresPalabra.length(); i++){
-        char caracter = delimitadoresPalabra[i];
-        bool existe = false;
-        for(int j = 0; j < delimiters.length(); j++){
-            if(delimiters[j] == caracter){      // si está en los que ya tenemos
-                existe = true;
-                break;
-            }
-        }
-        if(existe == false){        // si no está lo añadimos al final
-            delimiters += caracter;
-        }
+    delimiters = "";
+    for(int i = 0; i < 256; i++){   // inicializacion previa
+        delimitadores[i] = false;
     }
-    for(int i = 0; i < delimiters.length(); i++){
-        delimitadores[i] = true;
+    for(int i = 0; i < delimitadoresPalabra.size(); i++){
+        auto caracter = delimitadoresPalabra[i];
+        if(delimitadores[static_cast<unsigned char>(caracter)] == false){   // cambiamos a unsigned para no tener indices negativos
+            delimiters += caracter;
+            delimitadores[static_cast<unsigned char>(caracter)] = true;     // delimitador introducido ya, evita repes
+        }
     }
     casosEspeciales = kcasosEspeciales;
     pasarAminuscSinAcentos = minuscSinAcentos;
@@ -52,12 +48,12 @@ Tokenizador::Tokenizador(const string& delimitadoresPalabra, const bool& kcasosE
 
 // Constructor de copia
 Tokenizador::Tokenizador(const Tokenizador& t){
-    this->delimiters = t.delimiters;
-    for(int i = 0; i < delimiters.length(); i++){
-        delimitadores[i] = true;
+    delimiters = t.delimiters;
+    for(int i = 0; i < 256; i++){
+        delimitadores[i] = t.delimitadores[i];  // copiar el array de delimitadores
     }
-    this->casosEspeciales = t.casosEspeciales;
-    this->pasarAminuscSinAcentos = t.pasarAminuscSinAcentos;
+    casosEspeciales = t.casosEspeciales;
+    pasarAminuscSinAcentos = t.pasarAminuscSinAcentos;
 }
 
 /*
@@ -67,7 +63,12 @@ Tokenizador::Tokenizador(const Tokenizador& t){
 */
 Tokenizador::Tokenizador(){
     delimiters = ",;:.-/+*\\ '\"{}[]()<>¡!¿?&#=\t@";
-    //this->delimitadores[256] = {false};                     // 256 posibles caracteres del ISO-8859
+    for(int i = 0; i < 256; i++){
+        delimitadores[i] = false;
+    }
+    for(auto delimitador : delimiters){
+        delimitadores[static_cast<unsigned char> (delimitador)] = true;
+    }
     casosEspeciales = true;
     pasarAminuscSinAcentos = false;
 }
@@ -87,14 +88,13 @@ Tokenizador::~Tokenizador(){
 
 // Tokeniza str devolviendo el resultado en tokens. La lista tokens se vaciará antes de almacenar el resultado de la tokenización. 
 void Tokenizador::Tokenizar(const std::string& str, std::list<std::string>& tokens) const{
-    tokens.clear();         // limpiamos la lista de tokens
     string palabra;         // para almacenar cada palabra
     char caracter;
 
     for(int i = 0; i < str.length(); i++){
         caracter = str[i];
         if(delimitadores[static_cast<unsigned char>(caracter)] == true){    // si es un delimitador (cast a 256 valores posibles)
-            if(palabra.size() == 0){
+            if(palabra.length() != 0){
                 tokens.push_back(palabra);
                 palabra.clear();
             }
@@ -104,7 +104,7 @@ void Tokenizador::Tokenizar(const std::string& str, std::list<std::string>& toke
     }
 
     // si la ultima no está vacia la añadimos
-    if(palabra.size() == 0){
+    if(palabra.length() != 0){
         tokens.push_back(palabra);
     }
 }
@@ -118,47 +118,29 @@ Tokeniza el fichero i guardando la salida en el fichero f (una palabra en cada l
 */
 bool Tokenizador::Tokenizar(const string& i, const string& f) const{
     ifstream entrada(i);
-    ofstream salida(f);
-    string palabra = "";
-    char caracter;
+    string linea;
+    list<string> tokens;
 
     if(entrada.is_open() == false){
-        cerr << "El fichero no se ha podido abrir o no existe\n";
+        cerr << "ERROR: No existe el archivo: " << i << endl;
         return false;
     }else{
-        while(entrada.get(caracter)){
-            if(encontrarCaracterEnDelimitadores(caracter)){     // si es un delimitador
-                if(palabra.length() != 0){
-                    salida << palabra;                              // printea la palabra
-                    palabra.clear();                                // limpiamos para la siguiente
-                    salida << "\n";
-                }
-            }else{
-                palabra += caracter;                // concatenamos la palabra
+        while(entrada.eof() == false){
+            linea = "";
+            getline(entrada, linea);
+            if(linea.length() != 0){
+                this->Tokenizar(linea, tokens);
             }
         }
-
-        if(palabra.size() != 0){
-            salida << palabra;
-            palabra.clear();
-        }
-
         entrada.close();
+        ofstream salida(f);
+        list<string>::iterator itS;
+        for(itS = tokens.begin(); itS != tokens.end(); itS++){
+            salida << (*itS) << "\n";
+        }
         salida.close();
-
         return true;
     }
-
-}
-
-bool Tokenizador::encontrarCaracterEnDelimitadores(const char& caracter) const{
-    bool encontrado = false;
-    for(int i = 0; i < delimiters.length(); i++){
-        if(caracter == delimiters[i]){
-            encontrado = true;
-        }
-    }
-    return encontrado;
 }
 
 /*
@@ -187,16 +169,40 @@ y que contendrá una palabra en cada línea del fichero leído en i.
       luego no se ha de interrumpir la ejecuci�n si hay alg�n archivo en i que no exista)
 */
 bool Tokenizador::TokenizarListaFicheros(const string& i) const{
-    bool correcto = false;
-    stringstream listaFicheros(i);
-    string fichero;
-    while(getline(listaFicheros, fichero, '\n')){
-        ifstream ficheroALeer(fichero);
-        if(this->Tokenizar(fichero)){
-            correcto = true;
-        }else{
-            return false;       // si uno falla interrumpir todo
+    bool correcto = true;
+    ifstream ficheros(i);
+    string ficheroATokenizar;
+    struct stat dir;
+    list<string> tokens;
+    string lineaEnFichero = "";
+
+    if(ficheros.is_open() == true && stat(i.c_str(), &dir) != 0 || S_ISDIR(dir.st_mode) == false){
+        while(getline(ficheros, ficheroATokenizar)){    // cogemos linea a linea
+            tokens.clear();
+            if(stat(ficheroATokenizar.c_str(), &dir) != 0 || S_ISDIR(dir.st_mode) == false){ // comprobacion directorio
+                ifstream fichero(ficheroATokenizar);
+                if(fichero.is_open() == true){
+                    while(getline(fichero, lineaEnFichero)){
+                        Tokenizar(lineaEnFichero, tokens);
+                    }
+                    ofstream salida(ficheroATokenizar + ".tk");
+                    for(auto token : tokens){
+                        salida << token << "\n";
+                    }
+                    fichero.close();
+                    salida.close();
+                }else{
+                    cerr << "ERROR: No existe el archivo " << ficheroATokenizar << " pero no se interrumpe la ejecución" << endl;
+                    continue;
+                }
+            }else{
+                cerr << "ERROR: El archivo " << ficheroATokenizar << " es un directorio pero no se interrumpe la ejecución" << endl;
+                continue;
+            }
         }
+    }else{
+        cerr << "ERROR: El archivo " << i << " no existe o se trata de un directorio" << endl;
+        return false;
     }
     return correcto;
 } 

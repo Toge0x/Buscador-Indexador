@@ -9,11 +9,10 @@
 *.lo
 
 # Ignorar ejecutables generados
-mi_tokenizador
+main
 
 # Ignorar archivos de texto y de salida del tokenizador
 *.txt
-*.tk
 
 # Ignorar archivos de depuración
 *.gch
