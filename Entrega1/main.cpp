@@ -9,7 +9,7 @@ using namespace std::chrono;
 
 int main() {
     Tokenizador t;
-    string tokenizar = "lista_ficheros.txt";
+    string tokenizar = "lista_tokens.txt";
 
     auto start = high_resolution_clock::now();
 

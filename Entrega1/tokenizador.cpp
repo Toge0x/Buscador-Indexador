@@ -88,6 +88,7 @@ Tokenizador::~Tokenizador(){
 
 // Tokeniza str devolviendo el resultado en tokens. La lista tokens se vaciará antes de almacenar el resultado de la tokenización. 
 void Tokenizador::Tokenizar(const std::string& str, std::list<std::string>& tokens) const{
+    
     string palabra;         // para almacenar cada palabra
     char caracter;
 
@@ -181,13 +182,14 @@ bool Tokenizador::TokenizarListaFicheros(const string& i) const{
             tokens.clear();
             if(stat(ficheroATokenizar.c_str(), &dir) != 0 || S_ISDIR(dir.st_mode) == false){ // comprobacion directorio
                 ifstream fichero(ficheroATokenizar);
+                ofstream salida(ficheroATokenizar + ".tk");
                 if(fichero.is_open() == true){
                     while(getline(fichero, lineaEnFichero)){
+                        tokens.clear();
                         Tokenizar(lineaEnFichero, tokens);
-                    }
-                    ofstream salida(ficheroATokenizar + ".tk");
-                    for(auto token : tokens){
-                        salida << token << "\n";
+                        for(auto token : tokens){
+                            salida << token << "\n";
+                        }
                     }
                     fichero.close();
                     salida.close();

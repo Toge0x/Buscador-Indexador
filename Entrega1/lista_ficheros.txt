@@ -401,6 +401,7 @@ corpus/kefloridina-250-mg-granulado-para-suspension-oral-500-sobres.txt
 corpus/palladone-continys24mg-60-capsulas.txt
 corpus/ebixa-10mg-28-comp-cub-pelicular.txt
 corpus/neofertinorm-150ui-1-inyectable.txt
+corpus/ejemplo.uni.txt
 corpus/uft-capsulas-140-capsulas.txt
 corpus/fareston-60mg-30-comprimidos.txt
 corpus/hbvaxpro-5mcgvial-10-viales-05ml.txt
