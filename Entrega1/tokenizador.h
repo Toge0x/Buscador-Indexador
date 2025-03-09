@@ -13,7 +13,8 @@ class Tokenizador {
         Tokenizador ();
         ~Tokenizador ();
         Tokenizador& operator= (const Tokenizador&);
-        void Tokenizar (const string& str, list<string>& tokens) const;
+        void TokenizarCasosEspeciales(const string &str, list<string> &tokens) const;   // auxiliar para casos especiales
+        void Tokenizar(const string &str, list<string> &tokens) const;
         bool Tokenizar (const string& i, const string& f) const; 
         bool Tokenizar (const string & i) const;
         bool TokenizarListaFicheros (const string& i) const;

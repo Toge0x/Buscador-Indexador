@@ -2,7 +2,11 @@
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <cstdlib>
+#include <unordered_set>
 
+const unordered_set<char> caracteresURL = {'_', ':', '/', '.', '?', '&', '-', '=', '#', '@'};
 /*
     FUNCIONES AMIGAS
 */
@@ -11,8 +15,8 @@
     cout << "DELIMITADORES: " << delimiters << " TRATA CASOS ESPECIALES: " << casosEspeciales << " PASAR A MINUSCULAS Y SIN ACENTOS: " << pasarAminuscSinAcentos;
     
     Aunque se modifique el almacenamiento de los delimitadores por temas de eficiencia,
-    el campo delimiters se imprimirá con el string leído en el tokenizador
-    (tras las modificaciones y eliminación de los caracteres repetidos correspondientes)
+    el campo delimiters se imprimir� con el string le�do en el tokenizador
+    (tras las modificaciones y eliminaci�n de los caracteres repetidos correspondientes)
 */
 ostream& operator<<(ostream& os, const Tokenizador& t){
     os << "DELIMITADORES: " << t.delimiters << " TRATA CASOS ESPECIALES: " << t.casosEspeciales << " PASAR A MINUSCULAS Y SIN ACENTOS: " << t.pasarAminuscSinAcentos;
@@ -26,7 +30,7 @@ ostream& operator<<(ostream& os, const Tokenizador& t){
 /*
     Inicializa delimiters a delimitadoresPalabra filtrando que no se
     introduzcan delimitadores repetidos (de izquierda a derecha, en cuyo
-    caso se eliminarían los que hayan sido repetidos por la derecha);
+    caso se eliminar�an los que hayan sido repetidos por la derecha);
     casosEspeciales a kcasosEspeciales;
     pasarAminuscSinAcentos a minuscSinAcentos;
 */
@@ -57,12 +61,12 @@ Tokenizador::Tokenizador(const Tokenizador& t){
 }
 
 /*
-    Inicializa delimiters=",;:.-/+*\\ '\"{}[]()<>¡!¿?&#=\t@";
+    Inicializa delimiters=",;:.-/+*\\ '\"{}[]()<>�!�?&#=\t@";
     casosEspeciales a true;
     pasarAminuscSinAcentos a false
 */
 Tokenizador::Tokenizador(){
-    delimiters = ",;:.-/+*\\ '\"{}[]()<>¡!¿?&#=\t@";
+    delimiters = ",;:.-/+*\\ '\"{}[]()<>�!�?&#=\t@";
     for(int i = 0; i < 256; i++){
         delimitadores[i] = false;
     }
@@ -83,36 +87,134 @@ Tokenizador::~Tokenizador(){
 }
 
 /*
-    FUNCIONES
+    METODOS
 */
 
-// Tokeniza str devolviendo el resultado en tokens. La lista tokens se vaciará antes de almacenar el resultado de la tokenización. 
-void Tokenizador::Tokenizar(const std::string& str, std::list<std::string>& tokens) const{
-    
-    string palabra;         // para almacenar cada palabra
+// Tokeniza str devolviendo el resultado en el par�metro tokens con los caracteres especiales da igual cual sea
+void Tokenizador::TokenizarCasosEspeciales(const string& str, list<string>& tokens) const{
+    string url;
+    bool esURL = false;
+    string palabra;
     char caracter;
+    // mismo método que con delimitadores pero para el caso de URLs
+    bool caracteresValidosURL[256] = {false}; 
+    for (char c = 'a'; c <= 'z'; c++) caracteresValidosURL[static_cast<unsigned char> (c)] = true;
+    for (char c = 'A'; c <= 'Z'; c++) caracteresValidosURL[static_cast<unsigned char> (c)] = true;
+    for (char c = '0'; c <= '9'; c++) caracteresValidosURL[static_cast<unsigned char> (c)] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('_')] = true;
+    caracteresValidosURL[static_cast<unsigned char> (':')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('/')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('.')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('?')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('&')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('-')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('=')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('#')] = true;
+    caracteresValidosURL[static_cast<unsigned char> ('@')] = true;
 
     for(int i = 0; i < str.length(); i++){
         caracter = str[i];
-        if(delimitadores[static_cast<unsigned char>(caracter)] == true){    // si es un delimitador (cast a 256 valores posibles)
-            if(palabra.length() != 0){
+        if(delimitadores[static_cast<unsigned char>(caracter)] == false){
+            if(palabra.empty() == true){    // inicio de token
+                bool esFTP, esHTTP, esHTTPS = false;
+                if(i + 8 < str.length()){       // si esta pos + 8 < length puede tener https:// y el resto
+                    string posibleHTTPS = str.substr(i, 5);
+                    string posibleHTTP = str.substr(i, 4);
+                    string posibleFTP = str.substr(i, 3);
+                    if(pasarAminuscSinAcentos == true){
+                        for(auto& caracter : posibleFTP) caracter = tolower(caracter);
+                        for(auto& caracter : posibleHTTP) caracter = tolower(caracter);
+                        for(auto& caracter : posibleHTTPS) caracter = tolower(caracter);
+                    }
+                    if(posibleFTP == "ftp"){
+                        esFTP = true;
+                    }else if(posibleHTTP == "http"){
+                        esHTTP = true;
+                    }else if (posibleHTTPS == "https"){
+                        esHTTPS = true;
+                    }
+                }
+                if(esFTP == true){
+                    palabra += str.substr(i, 6); // agregamos ftp://
+                    i += 5;
+                    esURL = true;
+                    esFTP = false;
+                }else if(esHTTP == true){
+                    palabra += str.substr(i, 7); // agregamos http://
+                    i += 6;
+                    esURL = true;
+                    esHTTP = false;
+                }else if(esHTTPS == true){
+                    palabra += str.substr(i, 8); // agregamos https://
+                    i += 7;
+                    esURL = true;
+                    esHTTPS = false;
+                }else{
+                    palabra += caracter;    // no es caso especial concatena igual
+                }
+                if(esURL == true){  // hay que leer toda la URL
+                    while(i < str.length()){    // no es anidado, el indice avanzará
+                        i++;
+                        caracter = str[i];
+                        if(caracteresValidosURL[static_cast<unsigned char>(caracter)] == true){
+                            palabra += caracter;
+                        }else{
+                            break;  // delimitador no válido
+                        }
+                    }
+                    tokens.push_back(palabra);
+                    palabra.clear();
+                    esURL = false;
+                    i--;
+                    continue;
+                }
+            }else{                      // no es inicio de token
+                palabra += caracter;    // concatenar caracteres
+            }
+        }else{
+            if(palabra.empty() == false){   // delimitador encontrado
                 tokens.push_back(palabra);
                 palabra.clear();
             }
-        }else{
-            palabra += caracter;
         }
     }
 
-    // si la ultima no está vacia la añadimos
-    if(palabra.length() != 0){
+    if(palabra.empty() == false){   // si antes de terminar queda una palabra con contenido se agrega
         tokens.push_back(palabra);
+        palabra.clear();
+    }
+}
+
+// Tokeniza str devolviendo el resultado en tokens. La lista tokens se vaciar� antes de almacenar el resultado de la tokenizaci�n. 
+void Tokenizador::Tokenizar(const string& str, list<std::string>& tokens) const{
+    string palabra;         // para almacenar cada palabra
+    char caracter;
+    
+    if(casosEspeciales == true){
+        TokenizarCasosEspeciales(str, tokens);
+    }else{
+        for(int i = 0; i < str.length(); i++){
+            caracter = str[i];
+            if(delimitadores[static_cast<unsigned char>(caracter)] == true){    // si es un delimitador (cast a 256 valores posibles)
+                if(palabra.length() != 0){
+                    tokens.push_back(palabra);
+                    palabra.clear();
+                }
+            }else{
+                palabra += caracter;
+            }
+        }
+
+        // si la ultima no est� vacia la a�adimos
+        if(palabra.length() != 0){
+            tokens.push_back(palabra);
+        }
     }
 }
 
 /*
-Tokeniza el fichero i guardando la salida en el fichero f (una palabra en cada línea del fichero).
-    - Devolverá true si se realiza la tokenización de forma correcta;
+Tokeniza el fichero i guardando la salida en el fichero f (una palabra en cada l�nea del fichero).
+    - Devolver� true si se realiza la tokenizaci�n de forma correcta;
     - False en caso contrario enviando a cerr el mensaje correspondiente
 (p.ej. que no exista el archivo i)
 
@@ -145,10 +247,10 @@ bool Tokenizador::Tokenizar(const string& i, const string& f) const{
 }
 
 /*
-Tokeniza el fichero i guardando la salida en un fichero de nombre i añadiéndole extensión .tk
-(sin eliminar previamente la extensión de i por ejemplo, del archivo pp.txt se generaría el resultado en pp.txt.tk),
-y que contendrá una palabra en cada línea del fichero.
-    - Devolverá true si se realiza la tokenización de forma correcta;
+Tokeniza el fichero i guardando la salida en un fichero de nombre i a�adi�ndole extensi�n .tk
+(sin eliminar previamente la extensi�n de i por ejemplo, del archivo pp.txt se generar�a el resultado en pp.txt.tk),
+y que contendr� una palabra en cada l�nea del fichero.
+    - Devolver� true si se realiza la tokenizaci�n de forma correcta;
     - False en caso contrario enviando a cerr el mensaje correspondiente (p.ej. que no exista el archivo i)
 */
 bool Tokenizador::Tokenizar(const string & i) const{
@@ -161,16 +263,16 @@ bool Tokenizador::Tokenizar(const string & i) const{
 }
 
 /*
-Tokeniza el fichero i que contiene un nombre de fichero por línea guardando la salida en ficheros
-(uno por cada línea de i) cuyo nombre será el leído en i añadiéndole extensión .tk,
-y que contendrá una palabra en cada línea del fichero leído en i.
-    - Devolverá true si se realiza la tokenización de forma correcta de todos los archivos que contiene i;
+Tokeniza el fichero i que contiene un nombre de fichero por l�nea guardando la salida en ficheros
+(uno por cada l�nea de i) cuyo nombre ser� el le�do en i a�adi�ndole extensi�n .tk,
+y que contendr� una palabra en cada l�nea del fichero le�do en i.
+    - Devolver� true si se realiza la tokenizaci�n de forma correcta de todos los archivos que contiene i;
     - False en caso contrario enviando a cerr el mensaje correspondiente (p.ej. que no exista el archivo i,
       o que se trate de un directorio, enviando a "cerr" los archivos de i que no existan o que sean directorios;
-      luego no se ha de interrumpir la ejecuci�n si hay alg�n archivo en i que no exista)
+      luego no se ha de interrumpir la ejecuci?n si hay alg?n archivo en i que no exista)
 */
 bool Tokenizador::TokenizarListaFicheros(const string& i) const{
-    bool correcto = true;
+    bool algunFallo = false;
     ifstream ficheros(i);
     string ficheroATokenizar;
     struct stat dir;
@@ -187,65 +289,72 @@ bool Tokenizador::TokenizarListaFicheros(const string& i) const{
                     while(getline(fichero, lineaEnFichero)){
                         tokens.clear();
                         Tokenizar(lineaEnFichero, tokens);
-                        for(auto token : tokens){
+                        for(const auto& token : tokens){
                             salida << token << "\n";
                         }
                     }
                     fichero.close();
                     salida.close();
                 }else{
-                    cerr << "ERROR: No existe el archivo " << ficheroATokenizar << " pero no se interrumpe la ejecución" << endl;
+                    cerr << "ERROR: No existe el archivo " << ficheroATokenizar << " pero no se interrumpe la ejecuci�n" << endl;
+                    algunFallo = true;
                     continue;
                 }
             }else{
-                cerr << "ERROR: El archivo " << ficheroATokenizar << " es un directorio pero no se interrumpe la ejecución" << endl;
+                cerr << "ERROR: El archivo " << ficheroATokenizar << " es un directorio pero no se interrumpe la ejecuci�n" << endl;
+                algunFallo = true;
                 continue;
             }
         }
     }else{
         cerr << "ERROR: El archivo " << i << " no existe o se trata de un directorio" << endl;
-        return false;
+        algunFallo = true;
     }
-    return correcto;
+    return !algunFallo;
 } 
 
 /*
 Tokeniza todos los archivos que contenga el directorio i, incluyendo los de los subdirectorios,
-guardando la salida en ficheros cuyo nombre será el de entrada añadiéndole extensión .tk
-y que contendrá una palabra en cada línea del fichero. 
-    - Devolverá true si se realiza la tokenización de forma correcta de todos los archivos;
-    - Devolverá false en caso contrario enviando a cerr el mensaje correspondiente
+guardando la salida en ficheros cuyo nombre ser� el de entrada a�adi�ndole extensi�n .tk
+y que contendr� una palabra en cada l�nea del fichero. 
+    - Devolver� true si se realiza la tokenizaci�n de forma correcta de todos los archivos;
+    - Devolver� false en caso contrario enviando a cerr el mensaje correspondiente
     (p.ej. que no exista el directorio i, o los ficheros que no se hayan podido tokenizar)
 */
 bool Tokenizador::TokenizarDirectorio(const string& i) const{
-
+    bool correcto = true;
+    struct stat dir;
+    int error = stat(i.c_str(), &dir);
+    if(error != -1 && S_ISDIR(dir.st_mode) == true){
+        string cmd = "find " + i + " -follow |sort > .lista_fich";
+        system(cmd.c_str());
+        return TokenizarListaFicheros(".lista_fich");
+    }else{
+        cerr << "ERROR: La ruta " << i << " no es un directorio o los ficheros no se han podido tokenizar" << endl;
+        return false;
+    }
 }
 
 /*
 Inicializa delimiters a nuevoDelimiters, filtrando que no se introduzcan delimitadores repetidos
-(de izquierda a derecha, en cuyo caso se eliminarían los que hayan sido repetidos por la derecha)
+(de izquierda a derecha, en cuyo caso se eliminar�an los que hayan sido repetidos por la derecha)
 */
 void Tokenizador::DelimitadoresPalabra(const string& nuevoDelimiters){
-    delimiters.clear();
-    for(int i = 0; i < nuevoDelimiters.size(); i++){
-        char delimitador = nuevoDelimiters[i];
-        size_t pos = delimiters.find_first_of(delimitador);
-        if(pos == string::npos){
-            i++;
-        }else{
-            delimiters.push_back(delimitador);
-        }
+    delimiters = nuevoDelimiters;
+    for(int i = 0; i < 256; i++){   // reiniciar delimitadores
+        delimitadores[i] = false;
+    }
+    for(const auto& caracter : delimiters){ // asignar los nuevos
+        delimitadores[static_cast<unsigned char>(caracter)] = true;
     }
 }
 
-// Añade al final de "delimiters" los nuevos delimitadores que aparezcan en "nuevoDelimiters" (no se almacenarán caracteres repetidos)
-void Tokenizador::AnyadirDelimitadoresPalabra(const string& nuevoDelimiters){   // falta revisarlo en casa
-    for(int i = 0; i < nuevoDelimiters.size(); i++){
-        size_t pos = nuevoDelimiters.find_first_of(this->delimiters);
-        if(pos == string::npos){        // ya está en el string de delimitadores
-            i++;
-        }else{
-            
+// A�ade al final de "delimiters" los nuevos delimitadores que aparezcan en "nuevoDelimiters" (no se almacenar�n caracteres repetidos)
+void Tokenizador::AnyadirDelimitadoresPalabra(const string& nuevoDelimiters){
+    for(const auto& caracter : nuevoDelimiters){
+        if(delimitadores[static_cast<unsigned char> (caracter)] == false){  // si no est� lo a�adimos
+            delimiters += caracter;
+            delimitadores[static_cast<unsigned char> (caracter)] = true;
         }
     }
 }
@@ -267,11 +376,11 @@ bool Tokenizador::CasosEspeciales(){
 
 /*
 Cambia la variable privada "pasarAminuscSinAcentos".
-Atención al formato de codificación del corpus (comando "file" de Linux). 
-Para la corrección de la práctica se utilizará el formato actual (ISO-8859).
+Atenci�n al formato de codificaci�n del corpus (comando "file" de Linux). 
+Para la correcci�n de la pr�ctica se utilizar� el formato actual (ISO-8859).
 */
 void Tokenizador::PasarAminuscSinAcentos(const bool& nuevoPasarAminuscSinAcentos){
-
+    pasarAminuscSinAcentos = nuevoPasarAminuscSinAcentos;
 }
 
 // Devuelve el contenido de la variable privada "pasarAminuscSinAcentos"
@@ -283,13 +392,15 @@ bool Tokenizador::PasarAminuscSinAcentos(){
     OPERADORES
 */
 
-// No pone nada xd, algo hará
+// Sobrecarga del operador=
 Tokenizador& Tokenizador::operator=(const Tokenizador& t) {
     if (this != &t) {
         delimiters = t.delimiters;
+        for(const auto& caracter : delimiters){
+            delimitadores[static_cast<unsigned char>(caracter)] = true;
+        }
         casosEspeciales = t.casosEspeciales;
         pasarAminuscSinAcentos = t.pasarAminuscSinAcentos;
-        std::copy(std::begin(t.delimiters), std::end(t.delimiters), std::begin(delimiters));
     }
     return *this;
 }
