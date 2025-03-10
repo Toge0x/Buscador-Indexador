@@ -8,17 +8,26 @@
 using namespace std;
 using namespace std::chrono;
 
-int main() {
-    Tokenizador tokenizador;
-    list<string> tokens;
-    string s = "lista_ficheros.txt";
-    auto inicio = chrono::high_resolution_clock::now();
-    tokenizador.TokenizarListaFicheros(s);
+///////// Comprobación de que vacíe la lista resultado
 
-    auto fin = chrono::high_resolution_clock::now();
-    duration<double> duration = fin - inicio;
+void imprimirListaSTL(const list<string>& cadena)
+{
+        list<string>::const_iterator itCadena;
+        for(itCadena=cadena.begin();itCadena!=cadena.end();itCadena++)
+        {
+                cout << (*itCadena) << ", ";
+        }
+        cout << endl;
+}
 
-    cout << "Tiempo de ejecución: " << duration.count() << " s" << endl;
 
-    return 0;
+
+int
+main(void)
+{
+        string s = "lista_tokens.txt";
+        Tokenizador a;
+        a.TokenizarListaFicheros(s);
+        return 0;
+
 }
