@@ -1,8 +1,18 @@
+#ifndef INDEXADOR_INFORMACION_H
+#define INDEXADOR_INFORMACION_H
+
 #include<iostream>
 #include<unordered_map>
 #include<list>
 #include<time.h>
 using namespace std;
+
+class InformacionTermino;
+class InfTermDoc;
+class InfDoc;
+class InfColeccionDocs;
+class InformacionTerminoPregunta;
+class InformacionPregunta;
 
 class InformacionTermino { 
     friend ostream& operator<<(ostream& s, const InformacionTermino& p);
@@ -19,13 +29,6 @@ private:
     // Tabla Hash que se acceder? por el id del documento, devolviendo un objeto de la clase InfTermDoc que contiene toda la informaci?n de aparici?n del t?rmino en el documento
 };
 
-ostream& operator<<(ostream& s, const InformacionTermino& p) {
-    s << "Frecuencia total: " << p.ftc << "\tfd: " << p.l_docs.size();
-    // A continuaci?n se mostrar?an todos los elementos de p.l_docs: s << "\tId.Doc: " << idDoc << "\t" << InfTermDoc;
-
-    return s;
-}
-
 class InfTermDoc { 
     friend ostream& operator<<(ostream& s, const InfTermDoc& p);
 public:
@@ -41,13 +44,6 @@ private:
     // Solo se almacenar? esta informaci?n si el campo privado del indexador almacenarPosTerm == true
     // Lista de n?meros de palabra en los que aparece el t?rmino en el documento. Los n?meros de palabra comenzar?n desde cero (la primera palabra del documento). Se numerar?n las palabras de parada. Estar? ordenada de menor a mayor posici?n. 
 };
-
-ostream& operator<<(ostream& s, const InfTermDoc& p) {
-    s << "ft: " << p.ft;
-    // A continuaci?n se mostrar?an todos los elementos de p.posTerm ("posicion TAB posicion TAB ... posicion, es decir nunca finalizar? en un TAB"): s << "\t" << posicion;
-
-    return s;
-}
 
 class InfDoc { 
     friend ostream& operator<<(ostream& s, const InfDoc& p);
@@ -70,12 +66,6 @@ private:
     // Atributo correspondiente a la fecha y hora (completa) de modificaci?n del documento. El tipo "Fecha/hora" lo elegir?/implementar? el alumno
 };
 
-ostream& operator<<(ostream& s, const InfDoc& p) {
-    s << "idDoc: " << p.idDoc << "\tnumPal: " << p.numPal << "\tnumPalSinParada: " << p.numPalSinParada << "\tnumPalDiferentes: " << p.numPalDiferentes << "\ttamBytes: " << p.tamBytes;
-
-    return s;
-}
-
 class InfColeccionDocs { 
     friend ostream& operator<<(ostream& s, const InfColeccionDocs& p);
 public:
@@ -96,11 +86,6 @@ private:
     int tamBytes;	// Tama?o total en bytes de la colecci?n
 };
 
-ostream& operator<<(ostream& s, const InfColeccionDocs& p){
-    s << "numDocs: " << p.numDocs << "\tnumTotalPal: " << p.numTotalPal << "\tnumTotalPalSinParada: " << p.numTotalPalSinParada << "\tnumTotalPalDiferentes: " << p.numTotalPalDiferentes << "\ttamBytes: " << p.tamBytes;
-    return s;
-}
-
 class InformacionTerminoPregunta { 
     friend ostream& operator<<(ostream& s, const InformacionTerminoPregunta& p);
 public:
@@ -116,13 +101,6 @@ private:
     // Solo se almacenar? esta informaci?n si el campo privado del indexador almacenarPosTerm == true
     // Lista de n?meros de palabra en los que aparece el t?rmino en la pregunta. Los n?meros de palabra comenzar?n desde cero (la primera palabra de la pregunta). Se numerar?n las palabras de parada. Estar? ordenada de menor a mayor posici?n.
 };
-
-ostream& operator<<(ostream& s, const InformacionTerminoPregunta& p) {
-    s << "ft: " << p.ft;
-    // A continuaci?n se mostrar?an todos los elementos de p.posTerm ("posicion TAB posicion TAB ... posicion, es decir nunca finalizar? en un TAB"): s << "\t" << posicion;
-
-    return s;
-}
 
 class InformacionPregunta { 
     friend ostream& operator<<(ostream& s, const InformacionPregunta& p);
@@ -142,7 +120,4 @@ private:
     // N? total de palabras diferentes en la pregunta que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
 };
 
-ostream& operator<<(ostream& s, const InformacionPregunta& p){
-    s << "numTotalPal: " << p.numTotalPal << "\tnumTotalPalSinParada: "<< p.numTotalPalSinParada << "\tnumTotalPalDiferentes: " << p.numTotalPalDiferentes;
-    return s;
-}
+#endif
