@@ -19,7 +19,7 @@ class InformacionTermino {
 public:
     InformacionTermino (const InformacionTermino &);
     InformacionTermino ();		// Inicializa ftc = 0
-    ~InformacionTermino ();		// Pone ftc = 0 y vacía l_docs
+    ~InformacionTermino ();		// Pone ftc = 0 y vacï¿½a l_docs
     InformacionTermino & operator= (const InformacionTermino &);
 
     // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
@@ -54,6 +54,13 @@ public:
     InfDoc & operator= (const InfDoc &);
 
     // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    int getIdDoc() const;
+    int getNumPal() const;
+    int getNumPalSinParada() const;
+    int getNumPalDiferentes() const;
+    int getTamBytes() const;
+    struct tm getFechaModificacion() const;
+
 private:
     int idDoc;	
     // Identificador del documento. El primer documento indexado en la colecci?n ser? el identificador 1
