@@ -28,6 +28,9 @@ class Tokenizador {
         bool PasarAminuscSinAcentos ();
 
     private:
+
+        string TransformarMinusculaSinAcentos(const string& palabra) const;
+
         /*
             Delimitadores de términos. Aunque se modifique la forma de almacenamiento interna para mejorar la eficiencia, 
             este campo debe permanecer para indicar el orden en que se introdujeron los delimitadores

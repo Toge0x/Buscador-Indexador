@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <unordered_set>
 
-const unordered_set<char> caracteresURL = {'_', ':', '/', '.', '?', '&', '-', '=', '#', '@'};
 /*
     FUNCIONES AMIGAS
 */
@@ -90,6 +89,7 @@ Tokenizador::~Tokenizador(){
     METODOS
 */
 
+/*
 // Tokeniza str devolviendo el resultado en el par�metro tokens con los caracteres especiales da igual cual sea
 void Tokenizador::TokenizarCasosEspeciales(const string& str, list<string>& tokens) const{
     tokens.clear();
@@ -167,32 +167,60 @@ void Tokenizador::TokenizarCasosEspeciales(const string& str, list<string>& toke
     }
 }
 
+*/
+
+// funcion para pasar de mayusculas y con acentos a minusculas y sin acentos
+string Tokenizador::TransformarMinusculaSinAcentos(const string& palabra) const{
+    string resultado = "";
+    for(unsigned char c : palabra){
+        switch (c) {
+            case 193: case 225: c = 'a'; break; // Á, á
+            case 201: case 233: c = 'e'; break; // É, é
+            case 205: case 237: c = 'i'; break; // Í, í
+            case 211: case 243: c = 'o'; break; // Ó, ó
+            case 218: case 250: c = 'u'; break; // Ú, ú
+            case 209: case 241: c = 'n'; break; // Ñ, ñ
+            case 220: case 252: c = 'u'; break; // Ü, ü
+            default:
+                if (c >= 'A' && c <= 'Z') {
+                    c = c + 32;     // pasar a minuscula
+                }
+        }
+        resultado += static_cast<char>(c);
+    }
+    return resultado;
+}
+
+
 // Tokeniza str devolviendo el resultado en tokens. La lista tokens se vaciar� antes de almacenar el resultado de la tokenizaci�n. 
 void Tokenizador::Tokenizar(const string& str, list<std::string>& tokens) const{
-    string palabra;         // para almacenar cada palabra
+    tokens.clear();
+    string palabra;
     char caracter;
-    
-    if(casosEspeciales == true){
-        TokenizarCasosEspeciales(str, tokens);
-    }else{
-        for(int i = 0; i < str.length(); i++){
-            caracter = str[i];
-            if(delimitadores[static_cast<unsigned char>(caracter)] == true){    // si es un delimitador (cast a 256 valores posibles)
-                if(palabra.length() != 0){
-                    tokens.push_back(palabra);
-                    palabra.clear();
-                }
-            }else{
-                palabra += caracter;
-            }
-        }
 
-        // si la ultima no est� vacia la a�adimos
-        if(palabra.length() != 0){
-            tokens.push_back(palabra);
+    for (int i = 0; i < str.length(); i++) {
+        caracter = str[i];
+        if (delimitadores[static_cast<unsigned char>(caracter)]) {
+            if (!palabra.empty()) {
+                if (pasarAminuscSinAcentos) {
+                    palabra = TransformarMinusculaSinAcentos(palabra);
+                }
+                tokens.push_back(palabra);
+                palabra.clear();
+            }
+        } else {
+            palabra += caracter;
         }
     }
+
+    if (!palabra.empty()) {
+        if (pasarAminuscSinAcentos) {
+            palabra = TransformarMinusculaSinAcentos(palabra);
+        }
+        tokens.push_back(palabra);
+    }
 }
+
 
 /*
 Tokeniza el fichero i guardando la salida en el fichero f (una palabra en cada l�nea del fichero).
@@ -253,47 +281,33 @@ y que contendr� una palabra en cada l�nea del fichero le�do en i.
       o que se trate de un directorio, enviando a "cerr" los archivos de i que no existan o que sean directorios;
       luego no se ha de interrumpir la ejecuci?n si hay alg?n archivo en i que no exista)
 */
-bool Tokenizador::TokenizarListaFicheros(const string& i) const{
+bool Tokenizador::TokenizarListaFicheros(const string& i) const {
     bool algunFallo = false;
     ifstream ficheros(i);
-    string ficheroATokenizar;
     struct stat dir;
-    list<string> tokens;
-    string lineaEnFichero = "";
 
-    if(ficheros.is_open() == true && stat(i.c_str(), &dir) != 0 || S_ISDIR(dir.st_mode) == false){
-        while(getline(ficheros, ficheroATokenizar)){    // cogemos linea a linea
-            tokens.clear();
-            if(stat(ficheroATokenizar.c_str(), &dir) != 0 || S_ISDIR(dir.st_mode) == false){ // comprobacion directorio
-                ifstream fichero(ficheroATokenizar);
-                ofstream salida(ficheroATokenizar + ".tk");
-                if(fichero.is_open() == true){
-                    while(getline(fichero, lineaEnFichero)){
-                        tokens.clear();
-                        Tokenizar(lineaEnFichero, tokens);
-                        for(const auto& token : tokens){
-                            salida << token << "\n";
-                        }
-                    }
-                    fichero.close();
-                    salida.close();
-                }else{
-                    cerr << "ERROR: No existe el archivo " << ficheroATokenizar << " pero no se interrumpe la ejecuci�n" << endl;
-                    algunFallo = true;
-                    continue;
-                }
-            }else{
-                cerr << "ERROR: El archivo " << ficheroATokenizar << " es un directorio pero no se interrumpe la ejecuci�n" << endl;
-                algunFallo = true;
-                continue;
-            }
-        }
-    }else{
+    if (!ficheros.is_open() || stat(i.c_str(), &dir) == 0 && S_ISDIR(dir.st_mode)) {
         cerr << "ERROR: El archivo " << i << " no existe o se trata de un directorio" << endl;
-        algunFallo = true;
+        return false;
     }
+
+    string ficheroATokenizar;
+    while (getline(ficheros, ficheroATokenizar)) {
+        if (stat(ficheroATokenizar.c_str(), &dir) != 0 || S_ISDIR(dir.st_mode)) {
+            cerr << "ERROR: El archivo " << ficheroATokenizar << " no existe o es un directorio pero no se interrumpe la ejecución" << endl;
+            algunFallo = true;
+            continue;
+        }
+
+        if (!Tokenizar(ficheroATokenizar)) {
+            cerr << "ERROR: No se pudo tokenizar el archivo " << ficheroATokenizar << endl;
+            algunFallo = true;
+        }
+    }
+
     return !algunFallo;
-} 
+}
+
 
 /*
 Tokeniza todos los archivos que contenga el directorio i, incluyendo los de los subdirectorios,
