@@ -1,4 +1,5 @@
 #include "tokenizador.h"
+#include "indexadorInformacion.h"
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>

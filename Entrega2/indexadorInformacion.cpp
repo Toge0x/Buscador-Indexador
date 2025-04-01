@@ -151,11 +151,11 @@ void InfColeccionDocs::addTamBytes(int bytes){
     tamBytes += bytes;
 }
 
-int InfColeccionDocs::GetNumDocs() const{return numDocs;}
-int InfColeccionDocs::GetNumTotalPal() const{return numTotalPal;}
-int InfColeccionDocs::GetNumTotalPalSinParada() const{return numTotalPalSinParada;}
-int InfColeccionDocs::GetNumTotalPalDiferentes() const{return numTotalPalDiferentes;}
-int InfColeccionDocs::GetTamBytes() const{return tamBytes;}
+int InfColeccionDocs::getNumDocs() const{return numDocs;}
+int InfColeccionDocs::getNumTotalPal() const{return numTotalPal;}
+int InfColeccionDocs::getNumTotalPalSinParada() const{return numTotalPalSinParada;}
+int InfColeccionDocs::getNumTotalPalDiferentes() const{return numTotalPalDiferentes;}
+int InfColeccionDocs::getTamBytes() const{return tamBytes;}
 
 /*
     IMPLEMENTACIÓN DE LA CLASE InformacionTerminoPregunta

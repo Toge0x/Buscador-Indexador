@@ -2,28 +2,31 @@
 #include "indexadorInformacion.h"
 #include "tokenizador.h"
 #include<unordered_set>
+#include <unistd.h>
+#include <limits.h>
 using namespace std;
 
 class IndexadorHash {
 
-    friend ostream& operator<<(ostream& s, const IndexadorHash& p) {
-        s << "Fichero con el listado de palabras de parada: " << p. ficheroStopWords << endl;
-        s << "Tokenizador: " << p.tok << endl;
-        s << "Directorio donde se almacenara el indice generado: " << p.directorioIndice << endl;
-        s << "Stemmer utilizado: " << p.tipoStemmer << endl;
-        s << "Informacion de la coleccion indexada: " << p.informacionColeccionDocs << endl;
-        s << "Se almacenaran las posiciones de los terminos: " << p.almacenarPosTerm;
-
-        return s;
-    }
+    friend ostream& operator<<(ostream& s, const IndexadorHash& p);
 
 public:
 
     IndexadorHash(const string& fichStopWords, const string& delimitadores, const bool& detectComp, const bool& minuscSinAcentos, const string& dirIndice, const int& tStemmer, const bool& almPosTerm);
-    // "fichStopWords" ser� el nombre del archivo que contendr� todas las palabras de parada (una palabra por cada l�nea del fichero) y se almacenar� en el campo privado "ficheroStopWords". Asimismo, almacenar� todas las palabras de parada que contenga el archivo en el campo privado "stopWords", el �ndice de palabras de parada. 
-    // "delimitadores" ser� el string que contiene todos los delimitadores utilizados por el tokenizador (campo privado "tok")
+    // "fichStopWords" ser� el nombre del archivo que contendr� todas las palabras de parada
+    // (una palabra por cada l�nea del fichero) y se almacenar� en el campo privado "ficheroStopWords".
+    // Asimismo, almacenar� todas las palabras de parada que contenga el archivo en el campo privado
+    //  "stopWords", el �ndice de palabras de parada. 
+
+    // "delimitadores" ser� el string que contiene todos los delimitadores utilizados por el tokenizador
+    // (campo privado "tok")
+
     // detectComp y minuscSinAcentos ser�n los par�metros que se pasar�n al tokenizador
-    // "dirIndice" ser� el directorio del disco duro donde se almacenar� el �ndice (campo privado "directorioIndice"). Si dirIndice="" entonces se almacenar� en el directorio donde se ejecute el programa
+
+    // "dirIndice" ser� el directorio del disco duro donde se almacenar� el �ndice 
+    // (campo privado "directorioIndice"). Si dirIndice="" entonces se almacenar� en el directorio
+    // donde se ejecute el programa
+
     // "tStemmer" inicializar� la variable privada "tipoStemmer": 
     // 0 = no se aplica stemmer: se indexa el t�rmino tal y como aparece tokenizado
     // 1 = stemmer de Porter para espa�ol
@@ -32,7 +35,12 @@ public:
     // Los �ndices (p.ej. �ndice, indiceDocs e informacionColeccionDocs) quedar�n vac�os
 
     IndexadorHash(const string& directorioIndexacion);
-    // Constructor para inicializar IndexadorHash a partir de una indexaci�n previamente realizada que habr� sido almacenada en "directorioIndexacion" mediante el m�todo "bool GuardarIndexacion()". Con ello toda la parte privada se inicializar� convenientemente, igual que si se acabase de indexar la colecci�n de documentos. En caso que no exista el directorio o que no contenga los datos de la indexaci�n se tratar� la excepci�n correspondiente
+    // Constructor para inicializar IndexadorHash a partir de una indexaci�n previamente 
+    // realizada que habr� sido almacenada en "directorioIndexacion" mediante el m�todo 
+    // "bool GuardarIndexacion()". Con ello toda la parte privada se inicializar� 
+    // convenientemente, igual que si se acabase de indexar la colecci�n de documentos. 
+    // En caso que no exista el directorio o que no contenga los datos de la indexaci�n 
+    // se tratar� la excepci�n correspondiente
 
     IndexadorHash(const IndexadorHash&);
 
@@ -160,8 +168,11 @@ public:
     // Devuelve true si nomDoc existe en la colecci�n y muestra por pantalla el contenido del campo privado "indiceDocs" para el documento con nombre "nomDoc": cout << nomDoc << '\t' << InfDoc << endl; . Si no existe no se muestra nada
 
 private:	
+    void LeerIndiceBinario(ifstream& stream, unordered_map<string, InformacionTermino>& indice);
+    void LeerDocumentosBinario(ifstream& stream, unordered_map<string, InfDoc>& indiceDocs);
     IndexadorHash();	
-    // Este constructor se pone en la parte privada porque no se permitir� crear un indexador sin inicializarlo convenientemente. La inicializaci�n la decidir� el alumno
+    // Este constructor se pone en la parte privada porque no se permitir� crear un indexador
+    // sin inicializarlo convenientemente. La inicializaci�n la decidir� el alumno
 
     unordered_map<string, InformacionTermino> indice;	 
     // �ndice de t�rminos indexados accesible por el t�rmino

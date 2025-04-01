@@ -8,6 +8,7 @@ class Tokenizador {
     friend ostream& operator<<(ostream&, const Tokenizador&);
     
     public:
+        string TransformarMinusculaSinAcentos(const string& palabra) const;
         Tokenizador (const string& delimitadoresPalabra, const bool& kcasosEspeciales, const bool& minuscSinAcentos);
         Tokenizador (const Tokenizador&);
         Tokenizador ();
@@ -28,8 +29,6 @@ class Tokenizador {
         bool PasarAminuscSinAcentos ();
 
     private:
-
-        string TransformarMinusculaSinAcentos(const string& palabra) const;
 
         /*
             Delimitadores de términos. Aunque se modifique la forma de almacenamiento interna para mejorar la eficiencia, 

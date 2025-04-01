@@ -23,7 +23,7 @@ public:
     ~InformacionTermino ();		// Pone ftc = 0 y vacia l_docs
     InformacionTermino & operator= (const InformacionTermino &);
 
-    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
+    // Aï¿½adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
     void addFT();
     void addTerminoEnDocumento(int idDoc, int pos);
     int getFT() const;
@@ -65,7 +65,7 @@ public:
     ~InfDoc ();
     InfDoc & operator= (const InfDoc &);
 
-    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase 
+    // Aï¿½adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase 
     int getIdDoc() const;
     int getNumPal() const;
     int getNumPalSinParada() const;
@@ -100,25 +100,25 @@ public:
     ~InfColeccionDocs ();
     InfColeccionDocs & operator= (const InfColeccionDocs &);
 
-    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
+    // Aï¿½adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
     void addNumDocs();
     void addPalabras(int total, int sinParada, int diferentes);
     void addTamBytes(int bytes);
 
-    int GetNumDocs() const;
-    int GetNumTotalPal() const;
-    int GetNumTotalPalSinParada() const;
-    int GetNumTotalPalDiferentes() const;
-    int GetTamBytes() const;
+    int getNumDocs() const;
+    int getNumTotalPal() const;
+    int getNumTotalPalSinParada() const;
+    int getNumTotalPalDiferentes() const;
+    int getTamBytes() const;
 private:
-    int numDocs;	// Nº total de documentos en la colecci?n
+    int numDocs;	// Nï¿½ total de documentos en la colecci?n
     int numTotalPal;	
-    // Nº total de palabras en la colecci?n 
+    // Nï¿½ total de palabras en la colecci?n 
     int numTotalPalSinParada;
-    // Nº total de palabras sin stop-words en la colecci?n 
+    // Nï¿½ total de palabras sin stop-words en la colecci?n 
     int numTotalPalDiferentes;	
-    // Nº total de palabras diferentes en la colecci?n que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
-    int tamBytes;	// Tamaño total en bytes de la coleccion
+    // Nï¿½ total de palabras diferentes en la colecci?n que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
+    int tamBytes;	// Tamaï¿½o total en bytes de la coleccion
 };
 
 class InformacionTerminoPregunta { 
@@ -151,7 +151,7 @@ public:
     ~InformacionPregunta ();
     InformacionPregunta & operator= (const InformacionPregunta &);
 
-    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
+    // Aï¿½adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
     void addTermino(const string& termino, int pos, bool esStopword);
     int getNumTotalPal() const;
     int getNumTotalPalSinParada() const;
@@ -159,11 +159,11 @@ public:
     const unordered_map<string, InformacionTerminoPregunta>& getTerminos() const;
 private:
     int numTotalPal;	
-    // Nº total de palabras en la pregunta
+    // Nï¿½ total de palabras en la pregunta
     int numTotalPalSinParada;
-    // Nº total de palabras sin stop-words en la pregunta
+    // Nï¿½ total de palabras sin stop-words en la pregunta
     int numTotalPalDiferentes;	
-    // Nº total de palabras diferentes en la pregunta que no sean stop-words
+    // Nï¿½ total de palabras diferentes en la pregunta que no sean stop-words
     // (sin acumular la frecuencia de cada una de ellas)
     unordered_map<string, InformacionTerminoPregunta> terminos; // hash map string -> infoterminopregunta (ft, pos)
 };
