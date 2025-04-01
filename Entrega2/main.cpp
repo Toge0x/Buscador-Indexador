@@ -1,26 +1,41 @@
-#include "tokenizador.h"
-#include <iostream>
-#include <list>
+#include <iostream> 
 #include <string>
+#include <list> 
+#include <fstream>
+#include "tokenizador.h"
 
 using namespace std;
 
-int main() {
-    // Crear tokenizador con delimitadores personalizados, sin casos especiales, y pasando a min√∫sculas sin acentos
-    string delimitadores = " ,.;:-_()[]{}\"'\t\n°ø!?";
-    Tokenizador t(delimitadores, false, true);
+void imprimirListaSTL(const list<string>& cadena)
+{
+        list<string>::const_iterator itCadena;
+        for(itCadena=cadena.begin();itCadena!=cadena.end();itCadena++)
+        {
+                cout << (*itCadena) << ", ";
+        }
+        cout << endl;
+}
 
-    cout << "Configuraci√≥n del tokenizador: " << t << endl;
+int
+main(void)
+{
+		bool kCasosEspeciales = true, kpasarAminusculas = true;
 
-    // 1. Tokenizar una cadena manual
-    string frase = "°Hola, MUNDO! øCÛmo est· Èl? ¡…Õ”⁄ Ò — ¸ ‹";
-    list<string> tokens;
-    t.Tokenizar(frase, tokens);
+		list<string> lt1, lt2, lt3;
 
-    cout << "\nTokens de la frase:\n";
-    for (const auto& token : tokens) {
-        cout << "- " << token << endl;
-    }
+		Tokenizador a("[]# ", kCasosEspeciales, kpasarAminusculas);
 
-    return 0;
+		a.Tokenizar("·ÈÌÛ˙ ¡…Õ”⁄ —Ò ", lt3);
+		imprimirListaSTL(lt3);
+
+        ofstream out("debug_tokens.txt");
+        for (const auto& token : lt3) {
+            out << token << " -> ";
+            for (unsigned char c : token) {
+                out << (int)c << " ";
+            }
+            out << endl;
+        }
+
+		
 }

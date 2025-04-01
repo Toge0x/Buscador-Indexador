@@ -179,8 +179,8 @@ string Tokenizador::TransformarMinusculaSinAcentos(const string& palabra) const{
             case 205: case 237: c = 'i'; break; // Í, í
             case 211: case 243: c = 'o'; break; // Ó, ó
             case 218: case 250: c = 'u'; break; // Ú, ú
-            case 209: case 241: c = 'n'; break; // Ñ, ñ
-            case 220: case 252: c = 'u'; break; // Ü, ü
+            case 252: case 220: c = 'u'; break; // ü, Ü
+            case 209: c = 241; break;           // Ñ → ñ
             default:
                 if (c >= 'A' && c <= 'Z') {
                     c = c + 32;     // pasar a minuscula
