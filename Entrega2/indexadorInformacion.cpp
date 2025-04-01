@@ -1,5 +1,6 @@
 #include "indexadorInformacion.h"
 
+
 /*
     IMPLEMENTACIÓN DE LA CLASE InformacionTermino
 */
@@ -13,26 +14,35 @@ ostream& operator<<(ostream& s, const InformacionTermino& it){
     return s;
 }
 
-InformacionTermino::InformacionTermino(){		// Inicializa ftc = 0
-    ftc = 0;
+// evitar escribir codigo innecesario, copia campo a campo
+InformacionTermino::InformacionTermino() : ftc(0){}
+InformacionTermino::InformacionTermino(const InformacionTermino& it) = default;
+InformacionTermino::~InformacionTermino() = default;
+InformacionTermino& InformacionTermino::operator=(const InformacionTermino& it) = default;
+
+// metodos para manejar la parte privada
+
+void InformacionTermino::addFT(){
+    ftc++;
 }
 
-InformacionTermino::InformacionTermino(const InformacionTermino &it){
-    ftc = it.ftc;
-    l_docs = it.l_docs;
+void InformacionTermino::addTerminoEnDocumento(int idDoc, int pos){
+    addFT();  // aumentamos la frecuencia del termino en la coleccion total de documentos
+    InfTermDoc& infoDoc = l_docs[idDoc];    // obtenemos la informacion del termino en documento = idDoc
+    infoDoc.addFT();                        // incrementamos su frecuencia
+    infoDoc.addPositionTerm(pos);           // añadimos dónde aparece
 }
 
-InformacionTermino::~InformacionTermino(){// Pone ftc = 0 y vacía l_docs
-    ftc = 0;
-    l_docs.clear();
+int InformacionTermino::getFT() const{
+    return ftc;
 }
 
-InformacionTermino& InformacionTermino::operator=(const InformacionTermino &t){    // Operador asignación sobreescrito de la clase InformacionTermino
-    if(this != &t){
-        ftc = t.ftc;
-        l_docs = t.l_docs;
-    }
-    return *this;
+int InformacionTermino::getNumDocs() const{
+    return l_docs.size();
+}
+
+const unordered_map<int, InfTermDoc>& InformacionTermino::getLDocs() const{
+    return l_docs;
 }
 
 /*
@@ -54,67 +64,61 @@ ostream& operator<<(ostream& s, const InfTermDoc& itd) {
     }
     return s;
 }
-InfTermDoc::InfTermDoc(const InfTermDoc &itd){  // Constructor de copia
-    ft = itd.ft;
-    posTerm = itd.posTerm;
+
+// evitar escribir codigo innecesario
+InfTermDoc::InfTermDoc() : ft(0){}
+InfTermDoc::InfTermDoc(const InfTermDoc &itd) = default;
+InfTermDoc::~InfTermDoc() = default;
+InfTermDoc &InfTermDoc::operator=(const InfTermDoc &itd) = default;
+
+// metodos para controlar la parte privada
+
+void InfTermDoc::addFT(){
+    ft++;
 }
 
-InfTermDoc::InfTermDoc(){   	// Inicializa ft = 0
-    ft = 0;
+void InfTermDoc::addPositionTerm(int pos){
+    posTerm.push_back(pos);
 }
 
-InfTermDoc::~InfTermDoc(){		// Pone ft = 0 
-    ft = 0;
+int InfTermDoc::getFT() const{
+    return ft;
 }
 
-InfTermDoc &InfTermDoc::operator=(const InfTermDoc &itd){ // Operador asignación sobreescrito de la clase InfTermDoc
-    if(this != &itd){
-        ft = itd.ft;
-        posTerm = itd.posTerm;
-    }
-    return *this;
+const list<int>& InfTermDoc::getPositionTerm() const{
+    return posTerm;
 }
 
 /*
-    IMPLEMENTACIÓN DE LA CLASE InfTermDoc
+    IMPLEMENTACIÓN DE LA CLASE InfDoc
 */
-
-int AUTO_INCREMENTAL_ID_DOC = 0;
 
 ostream& operator<<(ostream& s, const InfDoc& id) {
     s << "idDoc: " << id.idDoc << "\tnumPal: " << id.numPal << "\tnumPalSinParada: " << id.numPalSinParada << "\tnumPalDiferentes: " << id.numPalDiferentes << "\ttamBytes: " << id.tamBytes;
     return s;
 }
 
-InfDoc::InfDoc(const InfDoc &id){
-    idDoc = id.idDoc;
-    numPal = id.numPal;
-    numPalDiferentes = id.numPalDiferentes;
-    tamBytes = id.tamBytes;
-    fechaModificacion = id.fechaModificacion;
-}
+// """"""""
+InfDoc::InfDoc() : idDoc(0), numPal(0), numPalSinParada(0), numPalDiferentes(0), tamBytes(0), fechaModificacion(0) {}
+InfDoc::InfDoc(const InfDoc& id) = default;
+InfDoc::~InfDoc() = default;
+InfDoc& InfDoc::operator=(const InfDoc& id) = default;
 
-InfDoc::InfDoc(){
-    idDoc = ++AUTO_INCREMENTAL_ID_DOC;
-    numPal = numPalSinParada = numPalDiferentes = tamBytes = 0;
-}
+// controlar los atributos privados
 
-InfDoc::~InfDoc(){
-    AUTO_INCREMENTAL_ID_DOC--;
-    idDoc = numPal = numPalSinParada = numPalDiferentes = tamBytes = 0;
-}
+int InfDoc::getIdDoc() const{return idDoc;}
+int InfDoc::getNumPal() const{return numPal;}
+int InfDoc::getNumPalSinParada() const{return numPalSinParada;}
+int InfDoc::getNumPalDiferentes() const{return numPalDiferentes;}
+int InfDoc::getTamBytes() const{return tamBytes;}
+time_t InfDoc::getFechaModificacion() const{return fechaModificacion;}
 
-InfDoc &InfDoc::operator=(const InfDoc &id){
-    if(this != &id){
-        idDoc = id.idDoc;
-        numPal = id.numPal;
-        numPalSinParada = id.numPalSinParada;
-        numPalDiferentes = id.numPalDiferentes;
-        tamBytes = id.tamBytes;
-        fechaModificacion = id.fechaModificacion;
-    }
-    return *this;
-}
+void InfDoc::setIdDoc(int id){idDoc = id;}
+void InfDoc::setTamBytes(int bytes){tamBytes = bytes;}
+void InfDoc::setFechaModificacion(const time_t& fecha){fechaModificacion = fecha;}
+void InfDoc::addNumPal(){numPal++;}
+void InfDoc::addNumPalSinParada(){numPalSinParada++;}
+void InfDoc::addNumPalDiferentes(){numPalDiferentes++;}
 
 /*
     IMPLEMENTACIÓN DE LA CLASE InfColeccionDocs
@@ -125,32 +129,33 @@ ostream& operator<<(ostream& s, const InfColeccionDocs& icd){
     return s;
 }
 
-InfColeccionDocs::InfColeccionDocs(const InfColeccionDocs &icd){
-    numDocs = icd.numDocs;
-    numTotalPal = icd.numTotalPal;
-    numTotalPalSinParada = icd.numTotalPalSinParada;
-    numTotalPalDiferentes = icd.numTotalPalDiferentes;
-    tamBytes = icd.tamBytes;
+InfColeccionDocs::InfColeccionDocs() : numDocs(0), numTotalPal(0), numTotalPalSinParada(0), numTotalPalDiferentes(0), tamBytes(0){}
+InfColeccionDocs::InfColeccionDocs(const InfColeccionDocs& icd) = default;
+InfColeccionDocs::~InfColeccionDocs() = default;
+InfColeccionDocs& InfColeccionDocs::operator=(const InfColeccionDocs& icd) = default;
+
+// metodos para controlar la parte privada
+
+
+void InfColeccionDocs::addNumDocs(){
+    numDocs++;
 }
 
-InfColeccionDocs::InfColeccionDocs(){
-    numDocs = numTotalPal = numTotalPalSinParada = numTotalPalDiferentes = tamBytes = 0;
+void InfColeccionDocs::addPalabras(int total, int sinParada, int diferentes){
+    numTotalPal += total;
+    numTotalPalSinParada += sinParada;
+    numTotalPalDiferentes += diferentes;
 }
 
-InfColeccionDocs::~InfColeccionDocs(){  // sin memoria dinámica
-
+void InfColeccionDocs::addTamBytes(int bytes){
+    tamBytes += bytes;
 }
 
-InfColeccionDocs &InfColeccionDocs::operator=(const InfColeccionDocs &icd){
-    if(this != &icd){
-        numDocs = icd.numDocs;
-        numTotalPal = icd.numTotalPal;
-        numTotalPalSinParada = icd.numTotalPalSinParada;
-        numTotalPalDiferentes = icd.numTotalPalDiferentes;
-        tamBytes = icd.tamBytes;
-    }
-    return *this;
-}
+int InfColeccionDocs::GetNumDocs() const{return numDocs;}
+int InfColeccionDocs::GetNumTotalPal() const{return numTotalPal;}
+int InfColeccionDocs::GetNumTotalPalSinParada() const{return numTotalPalSinParada;}
+int InfColeccionDocs::GetNumTotalPalDiferentes() const{return numTotalPalDiferentes;}
+int InfColeccionDocs::GetTamBytes() const{return tamBytes;}
 
 /*
     IMPLEMENTACIÓN DE LA CLASE InformacionTerminoPregunta
@@ -172,26 +177,20 @@ ostream& operator<<(ostream& s, const InformacionTerminoPregunta& itp) {
     return s;
 }
 
-InformacionTerminoPregunta::InformacionTerminoPregunta(const InformacionTerminoPregunta &itp){
-    ft = itp.ft;
-    posTerm = itp.posTerm;
-}
+InformacionTerminoPregunta::InformacionTerminoPregunta() : ft(0){}
+InformacionTerminoPregunta::InformacionTerminoPregunta(const InformacionTerminoPregunta& itp) = default;
+InformacionTerminoPregunta::~InformacionTerminoPregunta() = default;
+InformacionTerminoPregunta& InformacionTerminoPregunta::operator=(const InformacionTerminoPregunta& itp) = default;
 
-InformacionTerminoPregunta::InformacionTerminoPregunta(){
-    ft = 0;
-}
+// metodos para controlar la parte privada
 
-InformacionTerminoPregunta::~InformacionTerminoPregunta(){
-    ft = 0;
-    posTerm.clear();
-}
-
-InformacionTerminoPregunta &InformacionTerminoPregunta::operator=(const InformacionTerminoPregunta &itp){
-    if(this != &itp){
-        ft = itp.ft;
-        posTerm = itp.posTerm;
-    }
-    return *this;
+void InformacionTerminoPregunta::addFT() {ft++;}
+void InformacionTerminoPregunta::addPosition(int pos){posTerm.push_back(pos);}
+int InformacionTerminoPregunta::getFT() const {return ft;}
+list<int> InformacionTerminoPregunta::getSortedPositions() const{
+    list<int> ordenadas = posTerm;
+    ordenadas.sort();
+    return ordenadas;
 }
 
 /*
@@ -203,24 +202,33 @@ ostream& operator<<(ostream& s, const InformacionPregunta& ip){
     return s;
 }
 
-InformacionPregunta::InformacionPregunta(const InformacionPregunta &ip){
-    numTotalPal = ip.numTotalPal;
-    numTotalPalSinParada = ip.numTotalPalSinParada;
-    numTotalPalDiferentes = ip.numTotalPalDiferentes;
-}
+InformacionPregunta::InformacionPregunta() : numTotalPal(0), numTotalPalSinParada(0), numTotalPalDiferentes(0){}
+InformacionPregunta::InformacionPregunta(const InformacionPregunta& ip) = default;
+InformacionPregunta::~InformacionPregunta() = default;
+InformacionPregunta& InformacionPregunta::operator=(const InformacionPregunta& ip) = default;
 
-InformacionPregunta::InformacionPregunta(){
-    numTotalPal = numTotalPalSinParada = numTotalPalDiferentes = 0;
-}
+// metodos para controlar la parte privada
 
-InformacionPregunta::~InformacionPregunta(){    // no hay memoria dinámica
-}
+int InformacionPregunta::getNumTotalPal() const{return numTotalPal;}
+int InformacionPregunta::getNumTotalPalSinParada() const{return numTotalPalSinParada;}
+int InformacionPregunta::getNumTotalPalDiferentes() const{return numTotalPalDiferentes;}
+const unordered_map<string, InformacionTerminoPregunta>& InformacionPregunta::getTerminos() const{return terminos;}
 
-InformacionPregunta &InformacionPregunta::operator=(const InformacionPregunta &ip){
-    if(this != &ip){
-        numTotalPal = ip.numTotalPal;
-        numTotalPalSinParada = ip.numTotalPalSinParada;
-        numTotalPalDiferentes = ip.numTotalPalDiferentes;
+void InformacionPregunta::addTermino(const string& termino, int pos, bool esStopword) {
+    numTotalPal++;   // aumentamos el numero de palabras de la pregunta
+
+    if(!esStopword){                // si no es stopword la tratamos
+        numTotalPalSinParada++;
+        auto it = terminos.find(termino);   
+        if(it == terminos.end()){               // si no esta el termino
+            InformacionTerminoPregunta info;    // creamos el termino con frecuencia 1 y la pos del termino
+            info.addFT();
+            info.addPosition(pos);
+            terminos[termino] = info;
+            numTotalPalDiferentes++;
+        }else{                              // si ya existe en la pregunta aumentamos frecuencia y pos
+            it->second.addFT();             // first -> termino, second -> ITP (ft, pos)
+            it->second.addPosition(pos);
+        }
     }
-    return *this;
 }

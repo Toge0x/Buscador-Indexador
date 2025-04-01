@@ -22,20 +22,14 @@ main(void)
 		bool kCasosEspeciales = true, kpasarAminusculas = true;
 
 		list<string> lt1, lt2, lt3;
+        list<string> tokens; 
 
-		Tokenizador a("[]# ", kCasosEspeciales, kpasarAminusculas);
+		Tokenizador a("-#", true, false);
+        a.DelimitadoresPalabra("/ ");
 
-		a.Tokenizar("áéíóú ÁÉÍÓÚ Ññ ", lt3);
-		imprimirListaSTL(lt3);
-
-        ofstream out("debug_tokens.txt");
-        for (const auto& token : lt3) {
-            out << token << " -> ";
-            for (unsigned char c : token) {
-                out << (int)c << " ";
-            }
-            out << endl;
-        }
+		a.PasarAminuscSinAcentos(true);
+        a.Tokenizar("pal1#MS-DOSaA#p3 p1 p2", tokens);
+	    imprimirListaSTL(tokens);
 
 		
 }

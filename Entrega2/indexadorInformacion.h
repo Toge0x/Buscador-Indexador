@@ -5,6 +5,7 @@
 #include<unordered_map>
 #include<list>
 #include<time.h>
+#include <algorithm> // para sort
 using namespace std;
 
 class InformacionTermino;
@@ -19,14 +20,20 @@ class InformacionTermino {
 public:
     InformacionTermino (const InformacionTermino &);
     InformacionTermino ();		// Inicializa ftc = 0
-    ~InformacionTermino ();		// Pone ftc = 0 y vacï¿½a l_docs
+    ~InformacionTermino ();		// Pone ftc = 0 y vacia l_docs
     InformacionTermino & operator= (const InformacionTermino &);
 
-    // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
+    void addFT();
+    void addTerminoEnDocumento(int idDoc, int pos);
+    int getFT() const;
+    int getNumDocs() const;
+    const unordered_map<int, InfTermDoc>& getLDocs() const;
 private:
-    int ftc;	// Frecuencia total del t?rmino en la colecci?n
+    int ftc;	// Frecuencia total del t?rmino en la coleccion
     unordered_map<int, InfTermDoc> l_docs; 
-    // Tabla Hash que se acceder? por el id del documento, devolviendo un objeto de la clase InfTermDoc que contiene toda la informaci?n de aparici?n del t?rmino en el documento
+    // Tabla Hash que se accedera por el id del documento, devolviendo un objeto de la clase InfTermDoc que contiene 
+    // toda la informacion de aparicion del termino en el documento
 };
 
 class InfTermDoc { 
@@ -38,11 +45,16 @@ public:
     InfTermDoc & operator= (const InfTermDoc &);
 
     // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    void addFT();
+    void addPositionTerm(int pos);
+    int getFT() const;
+    const list<int>& getPositionTerm() const;
 private:
     int ft;	// Frecuencia del t?rmino en el documento
     list<int> posTerm;	
     // Solo se almacenar? esta informaci?n si el campo privado del indexador almacenarPosTerm == true
-    // Lista de n?meros de palabra en los que aparece el t?rmino en el documento. Los n?meros de palabra comenzar?n desde cero (la primera palabra del documento). Se numerar?n las palabras de parada. Estar? ordenada de menor a mayor posici?n. 
+    // Lista de n?meros de palabra en los que aparece el t?rmino en el documento. Los n?meros de palabra comenzar?n desde cero 
+    //(la primera palabra del documento). Se numerar?n las palabras de parada. Estar? ordenada de menor a mayor posici?n. 
 };
 
 class InfDoc { 
@@ -53,13 +65,20 @@ public:
     ~InfDoc ();
     InfDoc & operator= (const InfDoc &);
 
-    // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase 
     int getIdDoc() const;
     int getNumPal() const;
     int getNumPalSinParada() const;
     int getNumPalDiferentes() const;
     int getTamBytes() const;
-    struct tm getFechaModificacion() const;
+    time_t getFechaModificacion() const;
+
+    void setIdDoc(int id);
+    void setTamBytes(int bytes);
+    void setFechaModificacion(const time_t& fecha);
+    void addNumPal();
+    void addNumPalSinParada();
+    void addNumPalDiferentes();
 
 private:
     int idDoc;	
@@ -69,8 +88,8 @@ private:
     int numPalDiferentes;	
     // N? total de palabras diferentes que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
     int tamBytes;	// Tama?o en bytes del documento
-    struct tm fechaModificacion;
     // Atributo correspondiente a la fecha y hora (completa) de modificaci?n del documento. El tipo "Fecha/hora" lo elegir?/implementar? el alumno
+    time_t fechaModificacion;
 };
 
 class InfColeccionDocs { 
@@ -81,16 +100,25 @@ public:
     ~InfColeccionDocs ();
     InfColeccionDocs & operator= (const InfColeccionDocs &);
 
-    // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
+    void addNumDocs();
+    void addPalabras(int total, int sinParada, int diferentes);
+    void addTamBytes(int bytes);
+
+    int GetNumDocs() const;
+    int GetNumTotalPal() const;
+    int GetNumTotalPalSinParada() const;
+    int GetNumTotalPalDiferentes() const;
+    int GetTamBytes() const;
 private:
-    int numDocs;	// N? total de documentos en la colecci?n
+    int numDocs;	// Nº total de documentos en la colecci?n
     int numTotalPal;	
-    // N? total de palabras en la colecci?n 
+    // Nº total de palabras en la colecci?n 
     int numTotalPalSinParada;
-    // N? total de palabras sin stop-words en la colecci?n 
+    // Nº total de palabras sin stop-words en la colecci?n 
     int numTotalPalDiferentes;	
-    // N? total de palabras diferentes en la colecci?n que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
-    int tamBytes;	// Tama?o total en bytes de la colecci?n
+    // Nº total de palabras diferentes en la colecci?n que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
+    int tamBytes;	// Tamaño total en bytes de la coleccion
 };
 
 class InformacionTerminoPregunta { 
@@ -102,11 +130,17 @@ public:
     InformacionTerminoPregunta & operator= (const InformacionTerminoPregunta &);
 
     // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    void addFT();
+    void addPosition(int pos);
+    int getFT() const;
+    list<int> getSortedPositions() const;
 private:
-    int ft;	// Frecuencia total del t?rmino en la pregunta
+    int ft;	// Frecuencia total del termino en la pregunta
     list<int> posTerm;	
-    // Solo se almacenar? esta informaci?n si el campo privado del indexador almacenarPosTerm == true
-    // Lista de n?meros de palabra en los que aparece el t?rmino en la pregunta. Los n?meros de palabra comenzar?n desde cero (la primera palabra de la pregunta). Se numerar?n las palabras de parada. Estar? ordenada de menor a mayor posici?n.
+    // Solo se almacenara esta informaci?on si el campo privado del indexador almacenarPosTerm == true
+    // Lista de numeros de palabra en los que aparece el termino en la pregunta. 
+    //Los n?meros de palabra comenzar?n desde cero (la primera palabra de la pregunta).
+    //Se numerar?n las palabras de parada. Estar? ordenada de menor a mayor posici?n.
 };
 
 class InformacionPregunta { 
@@ -117,14 +151,21 @@ public:
     ~InformacionPregunta ();
     InformacionPregunta & operator= (const InformacionPregunta &);
 
-    // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
+    // Añadir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
+    void addTermino(const string& termino, int pos, bool esStopword);
+    int getNumTotalPal() const;
+    int getNumTotalPalSinParada() const;
+    int getNumTotalPalDiferentes() const;
+    const unordered_map<string, InformacionTerminoPregunta>& getTerminos() const;
 private:
     int numTotalPal;	
-    // N? total de palabras en la pregunta
+    // Nº total de palabras en la pregunta
     int numTotalPalSinParada;
-    // N? total de palabras sin stop-words en la pregunta
+    // Nº total de palabras sin stop-words en la pregunta
     int numTotalPalDiferentes;	
-    // N? total de palabras diferentes en la pregunta que no sean stop-words (sin acumular la frecuencia de cada una de ellas)
+    // Nº total de palabras diferentes en la pregunta que no sean stop-words
+    // (sin acumular la frecuencia de cada una de ellas)
+    unordered_map<string, InformacionTerminoPregunta> terminos; // hash map string -> infoterminopregunta (ft, pos)
 };
 
 #endif
