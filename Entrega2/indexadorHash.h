@@ -49,9 +49,19 @@ public:
     IndexadorHash& operator= (const IndexadorHash&);
 
     bool Indexar(const string& ficheroDocumentos);
-    // Devuelve true si consigue crear el �ndice para la colecci�n de documentos detallada en ficheroDocumentos, el cual contendr� un nombre de documento por l�nea. Los a�adir� a los ya existentes anteriormente en el �ndice.
-    // Devuelve falso si no finaliza la indexaci�n (p.ej. por falta de memoria), mostrando el mensaje de error correspondiente, indicando el documento y t�rmino en el que se ha quedado, dejando en memoria lo que se haya indexado hasta ese momento.
-    // En el caso que aparezcan documentos repetidos, documentos que no existen o que ya estuviesen previamente indexados (ha de coincidir el nombre del documento y el directorio en que se encuentre), se devolver� true, mostrando el mensaje de excepci�n correspondiente, y se re-indexar�n (borrar el documento previamente indexado e indexar el nuevo) en caso que la fecha de modificaci�n del documento sea m�s reciente que la almacenada previamente (class "InfDoc" campo "fechaModificacion"). Los casos de reindexaci�n mantendr�n el mismo idDoc.
+    // Devuelve true si consigue crear el �ndice para la colecci�n de documentos detallada 
+    // en ficheroDocumentos, el cual contendr� un nombre de documento por l�nea. 
+    // Los a�adir� a los ya existentes anteriormente en el �ndice.
+
+    // Devuelve falso si no finaliza la indexaci�n (p.ej. por falta de memoria),
+    // mostrando el mensaje de error correspondiente, indicando el documento y t�rmino 
+    // en el que se ha quedado, dejando en memoria lo que se haya indexado hasta ese momento.
+    // En el caso que aparezcan documentos repetidos, documentos que no existen o que ya 
+    // estuviesen previamente indexados (ha de coincidir el nombre del documento y el directorio
+    // en que se encuentre), se devolver� true, mostrando el mensaje de excepci�n correspondiente,
+    // y se re-indexar�n (borrar el documento previamente indexado e indexar el nuevo) en caso 
+    // que la fecha de modificaci�n del documento sea m�s reciente que la almacenada previamente 
+    // (class "InfDoc" campo "fechaModificacion"). Los casos de reindexaci�n mantendr�n el mismo idDoc.
 
 
     bool IndexarDirectorio(const string& dirAIndexar);
@@ -69,9 +79,7 @@ public:
     // Vac�a la indexaci�n que tuviese en ese momento e inicializa IndexadorHash a partir de una indexaci�n previamente realizada que habr� sido almacenada en "directorioIndexacion" mediante el m�todo "bool GuardarIndexacion()". Con ello toda la parte privada se inicializar� convenientemente, igual que si se acabase de indexar la colecci�n de documentos. En caso que no exista el directorio o que no contenga los datos de la indexaci�n se tratar� la excepci�n correspondiente, y se devolver� false, dejando la indexaci�n vac�a.
 
     void ImprimirIndexacion() const {
-    cout << "Terminos indexados: " << endl;
     // A continuaci�n aparecer� un listado del contenido del campo privado "�ndice" donde para cada t�rmino indexado se imprimir�: cout << termino << '\t' << InformacionTermino << endl;
-    cout << "Documentos indexados: " << endl;
     // A continuaci�n aparecer� un listado del contenido del campo privado "indiceDocs" donde para cada documento indexado se imprimir�: cout << nomDoc << '\t' << InfDoc << endl;
     }
 
@@ -90,15 +98,10 @@ public:
     // Devuelve true si hay una pregunta indexada, devolviendo su informaci�n almacenada (campo privado "infPregunta") en "inf". En caso que no est�, devolver�a "inf" vac�o
 
     void ImprimirIndexacionPregunta() {
-    cout << "Pregunta indexada: " << pregunta << endl;
-    cout << "Terminos indexados en la pregunta: " << endl;
     // A continuaci�n aparecer� un listado del contenido de "indicePregunta" donde para cada t�rmino indexado se imprimir�: cout << termino << '\t' << InformacionTerminoPregunta << endl;
-    cout << "Informacion de la pregunta: " << infPregunta << endl;
     }
 
     void ImprimirPregunta() {
-    cout << "Pregunta indexada: " << pregunta << endl;
-    cout << "Informacion de la pregunta: " << infPregunta << endl;
     }
 
     bool Devuelve(const string& word, InformacionTermino& inf) const; 
@@ -120,8 +123,6 @@ public:
     void VaciarIndicePreg(); 
     // Borra todos los t�rminos del �ndice de la pregunta: toda la indexaci�n de la pregunta actual.
 
-
-
     int NumPalIndexadas() const; 
     // Devolver� el n�mero de t�rminos diferentes indexados (cardinalidad de campo privado "�ndice")
 
@@ -137,10 +138,10 @@ public:
     string DevolverDelimitadores () const; 
     // Devuelve los delimitadores utilizados por el tokenizador
 
-    bool DevolverCasosEspeciales () const;
+    bool DevolverCasosEspeciales ();    // no puede ser const
     // Devuelve si el tokenizador analiza los casos especiales
 
-    bool DevolverPasarAminuscSinAcentos () const;
+    bool DevolverPasarAminuscSinAcentos (); // no puede ser const
     // Devuelve si el tokenizador pasa a min�sculas y sin acentos
 
     bool DevolverAlmacenarPosTerm () const;
@@ -167,9 +168,9 @@ public:
     bool ListarDocs(const string& nomDoc) const; 
     // Devuelve true si nomDoc existe en la colecci�n y muestra por pantalla el contenido del campo privado "indiceDocs" para el documento con nombre "nomDoc": cout << nomDoc << '\t' << InfDoc << endl; . Si no existe no se muestra nada
 
-private:	
-    void LeerIndiceBinario(ifstream& stream, unordered_map<string, InformacionTermino>& indice);
-    void LeerDocumentosBinario(ifstream& stream, unordered_map<string, InfDoc>& indiceDocs);
+private:
+    bool EsStopWord(const string& token);
+    
     IndexadorHash();	
     // Este constructor se pone en la parte privada porque no se permitir� crear un indexador
     // sin inicializarlo convenientemente. La inicializaci�n la decidir� el alumno

@@ -99,7 +99,7 @@ ostream& operator<<(ostream& s, const InfDoc& id) {
 }
 
 // """"""""
-InfDoc::InfDoc() : idDoc(0), numPal(0), numPalSinParada(0), numPalDiferentes(0), tamBytes(0), fechaModificacion(0) {}
+InfDoc::InfDoc() : idDoc(0), numPal(0), numPalSinParada(0), numPalDiferentes(0), tamBytes(0), fechaModificacion(time(nullptr)) {}
 InfDoc::InfDoc(const InfDoc& id) = default;
 InfDoc::~InfDoc() = default;
 InfDoc& InfDoc::operator=(const InfDoc& id) = default;
@@ -231,4 +231,16 @@ void InformacionPregunta::addTermino(const string& termino, int pos, bool esStop
             it->second.addPosition(pos);
         }
     }
+}
+
+void InformacionPregunta::incrementarNPalabras(const int n){
+    numTotalPal += n;
+}
+
+void InformacionPregunta::incrementarNPalabrasSinParada(const int n){
+    numTotalPalSinParada += n;
+}
+
+void InformacionPregunta::incrementarNPalabrasDiferentes(const int n){
+    numTotalPalDiferentes += n;
 }

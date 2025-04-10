@@ -157,6 +157,9 @@ public:
     int getNumTotalPalSinParada() const;
     int getNumTotalPalDiferentes() const;
     const unordered_map<string, InformacionTerminoPregunta>& getTerminos() const;
+    void InformacionPregunta::incrementarNPalabras(const int n);
+    void InformacionPregunta::incrementarNPalabrasSinParada(const int n);
+    void InformacionPregunta::incrementarNPalabrasDiferentes(const int n);
 private:
     int numTotalPal;	
     // N� total de palabras en la pregunta
