@@ -78,10 +78,9 @@ public:
     bool RecuperarIndexacion (const string& directorioIndexacion);
     // Vac�a la indexaci�n que tuviese en ese momento e inicializa IndexadorHash a partir de una indexaci�n previamente realizada que habr� sido almacenada en "directorioIndexacion" mediante el m�todo "bool GuardarIndexacion()". Con ello toda la parte privada se inicializar� convenientemente, igual que si se acabase de indexar la colecci�n de documentos. En caso que no exista el directorio o que no contenga los datos de la indexaci�n se tratar� la excepci�n correspondiente, y se devolver� false, dejando la indexaci�n vac�a.
 
-    void ImprimirIndexacion() const {
+    void ImprimirIndexacion() const;
     // A continuaci�n aparecer� un listado del contenido del campo privado "�ndice" donde para cada t�rmino indexado se imprimir�: cout << termino << '\t' << InformacionTermino << endl;
     // A continuaci�n aparecer� un listado del contenido del campo privado "indiceDocs" donde para cada documento indexado se imprimir�: cout << nomDoc << '\t' << InfDoc << endl;
-    }
 
     bool IndexarPregunta(const string& preg);
     // Devuelve true si consigue crear el �ndice para la pregunta "preg". Antes de realizar la indexaci�n vaciar� los campos privados indicePregunta e infPregunta
@@ -97,12 +96,10 @@ public:
     bool DevuelvePregunta(InformacionPregunta& inf) const; 
     // Devuelve true si hay una pregunta indexada, devolviendo su informaci�n almacenada (campo privado "infPregunta") en "inf". En caso que no est�, devolver�a "inf" vac�o
 
-    void ImprimirIndexacionPregunta() {
+    void ImprimirIndexacionPregunta();
     // A continuaci�n aparecer� un listado del contenido de "indicePregunta" donde para cada t�rmino indexado se imprimir�: cout << termino << '\t' << InformacionTerminoPregunta << endl;
-    }
 
-    void ImprimirPregunta() {
-    }
+    void ImprimirPregunta();
 
     bool Devuelve(const string& word, InformacionTermino& inf) const; 
     // Devuelve true si word (aplic�ndole el tratamiento de stemming y may�sculas correspondiente) est� indexado, devolviendo su informaci�n almacenada "inf". En caso que no est�, devolver�a "inf" vac�o

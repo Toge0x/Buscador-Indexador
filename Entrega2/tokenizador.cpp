@@ -370,7 +370,7 @@ void Tokenizador::CasosEspeciales(const bool& nuevoCasosEspeciales){
 }
 
 // Devuelve el contenido de la variable privada "casosEspeciales"
-bool Tokenizador::CasosEspeciales(){
+bool Tokenizador::CasosEspeciales() const{
     return casosEspeciales;
 }
 
@@ -384,7 +384,7 @@ void Tokenizador::PasarAminuscSinAcentos(const bool& nuevoPasarAminuscSinAcentos
 }
 
 // Devuelve el contenido de la variable privada "pasarAminuscSinAcentos"
-bool Tokenizador::PasarAminuscSinAcentos(){
+bool Tokenizador::PasarAminuscSinAcentos() const{
     return pasarAminuscSinAcentos;
 }
 

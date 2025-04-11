@@ -24,9 +24,9 @@ class Tokenizador {
         void AnyadirDelimitadoresPalabra(const string& nuevoDelimiters);
         string DelimitadoresPalabra() const;  
         void CasosEspeciales (const bool& nuevoCasosEspeciales);
-        bool CasosEspeciales ();
+        bool CasosEspeciales () const;
         void PasarAminuscSinAcentos (const bool& nuevoPasarAminuscSinAcentos);
-        bool PasarAminuscSinAcentos ();
+        bool PasarAminuscSinAcentos () const;
 
     private:
 

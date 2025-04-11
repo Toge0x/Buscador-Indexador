@@ -2,6 +2,7 @@
 #include "stemmer.h"
 #include <sys/stat.h>
 #include <cstdlib>
+#include <vector>
 #include <fstream>
 
 ostream& operator<<(ostream &s, const IndexadorHash &p){
@@ -99,7 +100,7 @@ IndexadorHash &IndexadorHash::operator=(const IndexadorHash &ind){
     return *this;
 }
 
-bool IndexadorHash::Indexar(const string &ficheroDocumentos){}
+bool IndexadorHash::Indexar(const string &ficheroDocumentos){}      // TODO:
 
 
 bool IndexadorHash::IndexarDirectorio(const string &dirAIndexar){
@@ -116,9 +117,110 @@ bool IndexadorHash::IndexarDirectorio(const string &dirAIndexar){
     }
 }
 
-bool IndexadorHash::GuardarIndexacion() const{}
+void guardarTerminosIndexadosIndice(ofstream& salida, const unordered_map<string, InformacionTermino>& indice){
+    salida << indice.size() << ' ';
+    for(const auto& [termino, infoTermino] : indice){
+        salida << termino << ' ' << infoTermino.getFT() << ' ';     // frecuencia del termino en TODA LA COLECCION
 
-bool IndexadorHash::RecuperarIndexacion(const string &directorioIndexacion){}
+        const auto& apariciones = infoTermino.getLDocs();           // documentos en los que aparece el termino
+        salida << apariciones.size() << ' ';
+
+        for(const auto& [idDoc, datosDoc] : apariciones){
+            salida << idDoc << ' ' << datosDoc.getFT() << ' ';  // frecuencia del termino en el documento idDoc
+
+            const auto& posiciones = datosDoc.getPositionTerm();    // donde aparece el termino en el documento idDoc
+            salida << posiciones.size() << ' ';
+            for(int pos : posiciones){
+                salida << pos << ' ';
+            }
+        }
+    }
+    salida << '\n';
+}
+
+void guardarInformacionDocumento(ofstream& salida, const pair<const string, InfDoc>& entradaDoc){
+    const string& nombreDocumento = entradaDoc.first;
+    const InfDoc& info = entradaDoc.second;
+
+    salida << nombreDocumento << ' '
+           << info.getIdDoc() << ' '
+           << info.getNumPal() << ' '
+           << info.getNumPalSinParada() << ' '
+           << info.getNumPalDiferentes() << ' '
+           << info.getTamBytes() << ' '
+           << info.getFechaModificacion() << '\n';
+}
+
+void guardarInformacionColeccionDocs(ofstream& salida, const InfColeccionDocs& coleccion){
+    int nDocs = coleccion.getNumDocs();
+    int totalPal = coleccion.getNumTotalPal();
+    int sinStop = coleccion.getNumTotalPalSinParada();
+    int diferentes = coleccion.getNumTotalPalDiferentes();
+    int tam = coleccion.getTamBytes();
+
+    salida << nDocs << ' ' << totalPal << ' ' << sinStop << ' '<< diferentes << ' ' << tam << '\n';
+}
+
+void guardarInformacionPregunta(ofstream& archivo, const InformacionPregunta& pregunta){
+    archivo << pregunta.getNumTotalPal() << ' ' << pregunta.getNumTotalPalSinParada() << ' ' << pregunta.getNumTotalPalDiferentes() << '\n';
+}
+
+void guardarTerminoPregunta(ofstream& salida, const pair<const string, InformacionTerminoPregunta>& entrada){
+    const string& termino = entrada.first;
+    const InformacionTerminoPregunta& info = entrada.second;
+
+    salida << termino << ' ' << info.getFT() << ' ';
+
+    const auto& posiciones = info.getSortedPositions();
+    for(int pos : posiciones){
+        salida << pos << ' ';
+    }
+
+    salida << '\n';
+}
+
+
+bool IndexadorHash::GuardarIndexacion() const{
+    bool correcto = true;
+    string fileIndexacion = directorioIndice + "/indexacion-amsm30.ua";
+    struct stat info{};
+    bool directorioExiste = (stat(directorioIndice.c_str(), &info) == 0) && S_ISDIR(info.st_mode);
+
+    if(directorioExiste == false){
+        int resultado = mkdir(directorioIndice.c_str(), 0777);  // resultado != 0 no se ha creado el directorio
+        if(resultado != 0){
+            std::cerr << "No se pudo crear el directorio \"" << directorioIndice << "\": " << strerror(errno) << '\n';  // error de creacion 
+            correcto = false;
+        }
+    }
+    // si todo ha ido bien y se ha creado el directorio de indexacion
+    ofstream archivo(fileIndexacion, ios::binary);  // binario para guardar la indexacion
+    if(archivo.is_open() == false){
+        correcto = false;
+        cerr << "No se pudo abrir el archivo" << '\n';
+    }
+    // guardamos 1 a 1 los campos privados
+    archivo << ficheroStopWords << '\n';
+    archivo << tok.DelimitadoresPalabra() << '\n';
+    archivo << tok.CasosEspeciales() << '\n';
+    archivo << tok.PasarAminuscSinAcentos() << '\n';
+    archivo << directorioIndice << '\n';
+    archivo << tipoStemmer << '\n';
+    archivo << almacenarPosTerm << '\n';
+
+    guardarTerminosIndexadosIndice(archivo, indice);
+    for(const auto& doc : indiceDocs)
+        guardarInformacionDocumento(archivo, doc);
+    guardarInformacionColeccionDocs(archivo, informacionColeccionDocs);
+    guardarInformacionPregunta(archivo, infPregunta);
+    for(const auto& terminoPregunta : indicePregunta)
+        guardarTerminoPregunta(archivo, terminoPregunta);
+
+    archivo.close();
+    return correcto;
+}
+
+bool IndexadorHash::RecuperarIndexacion(const string &directorioIndexacion){}       // TODO:
 
 void IndexadorHash::ImprimirIndexacion() const{
     cout << "Terminos indexados: " << "\n";
