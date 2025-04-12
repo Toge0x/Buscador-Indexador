@@ -1,35 +1,24 @@
 #include <iostream> 
 #include <string>
 #include <list> 
-#include <fstream>
-#include "tokenizador.h"
+#include "indexadorHash.h"
 
 using namespace std;
-
-void imprimirListaSTL(const list<string>& cadena)
-{
-        list<string>::const_iterator itCadena;
-        for(itCadena=cadena.begin();itCadena!=cadena.end();itCadena++)
-        {
-                cout << (*itCadena) << ", ";
-        }
-        cout << endl;
-}
 
 int
 main(void)
 {
-		bool kCasosEspeciales = true, kpasarAminusculas = true;
+IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", true, true, "./indicePrueba", 1, true);
+cout << "IndexadorHash a:\n################\n" << a << endl;
 
-		list<string> lt1, lt2, lt3;
-        list<string> tokens; 
+IndexadorHash b("./StopWordsIngles.txt", ". ,:", true, false, "./indicePruebaIngles", 2, true);
+cout << "IndexadorHash b:\n################\n" << b << endl;
 
-		Tokenizador a("-#", true, false);
-        a.DelimitadoresPalabra("/ ");
+cout << b.DevolverDelimitadores () << endl; 
+cout << b.DevolverDirIndice () << endl; 
+cout << b.DevolverTipoStemming () << endl; 
+cout << b.DevolverAlmacenarPosTerm () << endl; 
+cout << b.DevolverPasarAminuscSinAcentos () << endl; 
+cout << b.DevolverCasosEspeciales () << endl; 
 
-		a.PasarAminuscSinAcentos(true);
-        a.Tokenizar("pal1#MS-DOSaA#p3 p1 p2", tokens);
-	    imprimirListaSTL(tokens);
-
-		
 }

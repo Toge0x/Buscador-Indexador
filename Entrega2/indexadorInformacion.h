@@ -25,10 +25,12 @@ public:
 
     // A�adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
     void addFT();
+    void setFT(const int n);
     void addTerminoEnDocumento(int idDoc, int pos);
     int getFT() const;
     int getNumDocs() const;
     const unordered_map<int, InfTermDoc>& getLDocs() const;
+    bool eliminarTerminoDeDocumento(const int id);
 private:
     int ftc;	// Frecuencia total del t?rmino en la coleccion
     unordered_map<int, InfTermDoc> l_docs; 
@@ -115,6 +117,9 @@ public:
     int getNumTotalPalSinParada() const;
     int getNumTotalPalDiferentes() const;
     int getTamBytes() const;
+
+    void agregarDocumentoAColeccion(const InfDoc& documento);
+    void borrarDocumentoDeColeccion(const InfDoc& documento);
 private:
     int numDocs;	// N� total de documentos en la colecci?n
     int numTotalPal;	

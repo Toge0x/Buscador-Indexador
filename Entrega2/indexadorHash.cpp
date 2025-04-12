@@ -446,6 +446,7 @@ bool IndexadorHash::Devuelve(const string &word, InformacionTermino &inf) const{
 }
 
 bool IndexadorHash::Devuelve(const string& word, const string& nomDoc, InfTermDoc& i) const{
+    bool correcto = true;
     auto doc = indiceDocs.find(nomDoc);     //                                     word
     auto pos_indice = indice.find(word);    // si lo encuentra sera un hash map <string, InformacionTermino>
 
@@ -453,19 +454,39 @@ bool IndexadorHash::Devuelve(const string& word, const string& nomDoc, InfTermDo
         auto aux = pos_indice->second.getLDocs().find(doc->second.getIdDoc());  // buscamos en los documentos en los que aparece word con id de documento IdDoc
         if(aux != pos_indice->second.getLDocs().end()){                         // el documento en el que aparece word existe
             i = aux->second;
-            return true;
         }
     }else{                  // si alguno no devolvemos uno vacio
         i = InfTermDoc{};
-        return false;
+        correcto = false;
     }
+    return correcto;
 }
 
 bool IndexadorHash::Existe(const string &word) const{
     return (indice.find(word) != indice.end());
 }
 
-bool IndexadorHash::BorraDoc(const string &nomDoc){}
+bool IndexadorHash::BorraDoc(const string &nomDoc){
+    bool eliminado = true;
+    auto itIndiceDocs = indiceDocs.find(nomDoc);    // buscamos el documento
+    if(itIndiceDocs == indiceDocs.end()){           // si no existe paramos
+        eliminado = false;
+    }else{
+        auto documentoIt = indice.begin();
+        while(documentoIt != indice.end()){     // hay que borrar el documento de cada termino del indice para eliminar las referencias
+            documentoIt->second.eliminarTerminoDeDocumento(itIndiceDocs->second.getIdDoc());    // eliminamos los terminos 1 a 1 del documento (y cada uno de los l_docs al que pertenece el documento)
+            if(documentoIt->second.getFT() > 0){    // si el termino sigue apareciendo en otros documentos lo mantenemos en el indice y avanzamos
+                documentoIt++;
+            }else{
+                documentoIt = indice.erase(documentoIt);    // si tiene FT = 0 borramos el termino se elimina del indice
+            }
+        }
+        informacionColeccionDocs.borrarDocumentoDeColeccion(itIndiceDocs->second);  // borramos el documento de la coleccion
+        informacionColeccionDocs.setPalabrasDiferentes(indice.size());              // actualizamos el número de palabras distintas --> cantidad de terminos indexados
+        indiceDocs.erase(itIndiceDocs);
+    }
+    return eliminado;
+}
 
 void IndexadorHash::VaciarIndiceDocs(){
     indiceDocs.clear();

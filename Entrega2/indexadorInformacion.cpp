@@ -26,6 +26,10 @@ void InformacionTermino::addFT(){
     ftc++;
 }
 
+void InformacionTermino::setFT(const int n){
+    ftc += n;
+}
+
 void InformacionTermino::addTerminoEnDocumento(int idDoc, int pos){
     addFT();  // aumentamos la frecuencia del termino en la coleccion total de documentos
     InfTermDoc& infoDoc = l_docs[idDoc];    // obtenemos la informacion del termino en documento = idDoc
@@ -43,6 +47,17 @@ int InformacionTermino::getNumDocs() const{
 
 const unordered_map<int, InfTermDoc>& InformacionTermino::getLDocs() const{
     return l_docs;
+}
+
+bool InformacionTermino::eliminarTerminoDeDocumento(const int idDoc){
+    bool eliminado = false;
+    auto documento = this->l_docs.find(idDoc);
+    if(documento != l_docs.end()){      // el documento existe
+        ftc = ftc - documento->second.getFT();      // frecuencia de la coleccion -= frecuencia del termino en ese documento
+        l_docs.erase(documento);
+        eliminado = true;
+    }
+    return eliminado;
 }
 
 /*
@@ -166,6 +181,20 @@ int InfColeccionDocs::getNumTotalPal() const{return numTotalPal;}
 int InfColeccionDocs::getNumTotalPalSinParada() const{return numTotalPalSinParada;}
 int InfColeccionDocs::getNumTotalPalDiferentes() const{return numTotalPalDiferentes;}
 int InfColeccionDocs::getTamBytes() const{return tamBytes;}
+
+void InfColeccionDocs::agregarDocumentoAColeccion(const InfDoc& documento){
+    numTotalPal += documento.getNumPal();
+    numTotalPalSinParada += documento.getNumPalSinParada();
+    numTotalPalDiferentes += documento.getNumPalDiferentes();
+    numDocs += 1;
+}
+
+void InfColeccionDocs::borrarDocumentoDeColeccion(const InfDoc& documento){
+    numTotalPal -= documento.getNumPal();
+    numTotalPalSinParada -= documento.getNumPalSinParada();
+    numTotalPalDiferentes -= documento.getNumPalDiferentes();
+    numDocs -= 1;
+}
 
 /*
     IMPLEMENTACIÓN DE LA CLASE InformacionTerminoPregunta
