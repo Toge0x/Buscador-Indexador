@@ -6,12 +6,12 @@
 #include <fstream>
 
 ostream& operator<<(ostream &s, const IndexadorHash &p){
-    s << "Fichero con el listado de palabras de parada: " << p.ficheroStopWords << endl;
-    s << "Tokenizador: " << p.tok << endl;
-    s << "Directorio donde se almacenara el indice generado: " << p.directorioIndice << endl;
-    s << "Stemmer utilizado: " << p.tipoStemmer << endl;
-    s << "Informacion de la coleccion indexada: " << p.informacionColeccionDocs << endl;
-    s << "Se almacenaran las posiciones de los terminos: " << p.almacenarPosTerm;
+    s << "Fichero con el listado de palabras de parada: " << p.ficheroStopWords << '\n';
+    s << "Tokenizador: " << p.tok << '\n';
+    s << "Directorio donde se almacenara el indice generado: " << p.directorioIndice << '\n';
+    s << "Stemmer utilizado: " << p.tipoStemmer << '\n';
+    s << "Informacion de la coleccion indexada: " << p.informacionColeccionDocs << '\n';
+    s << "Se almacenaran las posiciones de los terminos: " << p.almacenarPosTerm << '\n';
 
     return s;
 }
@@ -100,7 +100,7 @@ IndexadorHash &IndexadorHash::operator=(const IndexadorHash &ind){
     return *this;
 }
 
-bool IndexadorHash::Indexar(const string &ficheroDocumentos){}      // TODO:
+bool IndexadorHash::Indexar(const string &ficheroDocumentos){ return true;}      // TODO:
 
 
 bool IndexadorHash::IndexarDirectorio(const string &dirAIndexar){
