@@ -74,6 +74,9 @@ public:
     time_t getFechaModificacion() const;
 
     void setIdDoc(int id);
+    void setNumPal(int pal);
+    void setNumPalSinParada(int pal);
+    void setNumPalDifernetes(int pal);
     void setTamBytes(int bytes);
     void setFechaModificacion(const time_t& fecha);
     void addNumPal();
@@ -101,9 +104,11 @@ public:
     InfColeccionDocs & operator= (const InfColeccionDocs &);
 
     // A�adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
-    void addNumDocs();
-    void addPalabras(int total, int sinParada, int diferentes);
-    void addTamBytes(int bytes);
+    void setNumDocs(int docs);
+    void setTotalPalabras(int pal);
+    void setPalabrasSinParada(int pal);
+    void setPalabrasDiferentes(int pal);
+    void setBytes(int bytes);
 
     int getNumDocs() const;
     int getNumTotalPal() const;
@@ -131,7 +136,8 @@ public:
 
     // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
     void addFT();
-    void addPosition(int pos);
+    void setFT(int n);
+    void addItemToPos(int pos);
     int getFT() const;
     list<int> getSortedPositions() const;
 private:
@@ -157,9 +163,9 @@ public:
     int getNumTotalPalSinParada() const;
     int getNumTotalPalDiferentes() const;
     const unordered_map<string, InformacionTerminoPregunta>& getTerminos() const;
-    void InformacionPregunta::incrementarNPalabras(const int n);
-    void InformacionPregunta::incrementarNPalabrasSinParada(const int n);
-    void InformacionPregunta::incrementarNPalabrasDiferentes(const int n);
+    void incrementarNPalabras(const int n);
+    void incrementarNPalabrasSinParada(const int n);
+    void incrementarNPalabrasDiferentes(const int n);
 private:
     int numTotalPal;	
     // N� total de palabras en la pregunta

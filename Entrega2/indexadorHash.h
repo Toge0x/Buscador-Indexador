@@ -1,7 +1,10 @@
-#include<iostream>
+#ifndef INDEXADOR_HASH_H
+#define INDEXADOR_HASH_H
+
+#include <iostream>
 #include "indexadorInformacion.h"
 #include "tokenizador.h"
-#include<unordered_set>
+#include <unordered_set>
 #include <unistd.h>
 #include <limits.h>
 using namespace std;
@@ -166,7 +169,6 @@ public:
     // Devuelve true si nomDoc existe en la colecci�n y muestra por pantalla el contenido del campo privado "indiceDocs" para el documento con nombre "nomDoc": cout << nomDoc << '\t' << InfDoc << endl; . Si no existe no se muestra nada
 
 private:
-    bool EsStopWord(const string& token);
     
     IndexadorHash();	
     // Este constructor se pone en la parte privada porque no se permitir� crear un indexador
@@ -214,3 +216,5 @@ private:
     bool almacenarPosTerm;	
     // Si es true se almacenar� la posici�n en la que aparecen los t�rminos dentro del documento en la clase InfTermDoc
 };
+
+#endif

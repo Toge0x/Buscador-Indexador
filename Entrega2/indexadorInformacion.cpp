@@ -116,6 +116,10 @@ time_t InfDoc::getFechaModificacion() const{return fechaModificacion;}
 void InfDoc::setIdDoc(int id){idDoc = id;}
 void InfDoc::setTamBytes(int bytes){tamBytes = bytes;}
 void InfDoc::setFechaModificacion(const time_t& fecha){fechaModificacion = fecha;}
+void InfDoc::setNumPal(int pal){numPal = pal;}
+void InfDoc::setNumPalSinParada(int pal){numPalSinParada = pal;}
+void InfDoc::setNumPalDifernetes(int pal){numPalDiferentes = pal;}
+
 void InfDoc::addNumPal(){numPal++;}
 void InfDoc::addNumPalSinParada(){numPalSinParada++;}
 void InfDoc::addNumPalDiferentes(){numPalDiferentes++;}
@@ -137,18 +141,24 @@ InfColeccionDocs& InfColeccionDocs::operator=(const InfColeccionDocs& icd) = def
 // metodos para controlar la parte privada
 
 
-void InfColeccionDocs::addNumDocs(){
-    numDocs++;
+void InfColeccionDocs::setNumDocs(int docs){
+    numDocs = docs;
 }
 
-void InfColeccionDocs::addPalabras(int total, int sinParada, int diferentes){
-    numTotalPal += total;
-    numTotalPalSinParada += sinParada;
-    numTotalPalDiferentes += diferentes;
+void InfColeccionDocs::setTotalPalabras(int pal){
+    numTotalPal = pal;
 }
 
-void InfColeccionDocs::addTamBytes(int bytes){
-    tamBytes += bytes;
+void InfColeccionDocs::setPalabrasSinParada(int pal){
+    numTotalPalSinParada = pal;
+}
+
+void InfColeccionDocs::setPalabrasDiferentes(int pal){
+    numTotalPalDiferentes = pal;
+}
+
+void InfColeccionDocs::setBytes(int bytes){
+    tamBytes = bytes;
 }
 
 int InfColeccionDocs::getNumDocs() const{return numDocs;}
@@ -185,7 +195,12 @@ InformacionTerminoPregunta& InformacionTerminoPregunta::operator=(const Informac
 // metodos para controlar la parte privada
 
 void InformacionTerminoPregunta::addFT() {ft++;}
-void InformacionTerminoPregunta::addPosition(int pos){posTerm.push_back(pos);}
+void InformacionTerminoPregunta::setFT(int n) {ft = n;}
+
+void InformacionTerminoPregunta::addItemToPos(int pos){
+    this->posTerm.push_back(pos);
+}
+
 int InformacionTerminoPregunta::getFT() const {return ft;}
 list<int> InformacionTerminoPregunta::getSortedPositions() const{
     list<int> ordenadas = posTerm;
@@ -222,13 +237,13 @@ void InformacionPregunta::addTermino(const string& termino, int pos, bool esStop
         auto it = terminos.find(termino);   
         if(it == terminos.end()){               // si no esta el termino
             InformacionTerminoPregunta info;    // creamos el termino con frecuencia 1 y la pos del termino
-            info.addFT();
-            info.addPosition(pos);
+            info.addFT();                       // ft++
+            info.addItemToPos(pos);
             terminos[termino] = info;
             numTotalPalDiferentes++;
         }else{                              // si ya existe en la pregunta aumentamos frecuencia y pos
             it->second.addFT();             // first -> termino, second -> ITP (ft, pos)
-            it->second.addPosition(pos);
+            it->second.addItemToPos(pos);
         }
     }
 }
