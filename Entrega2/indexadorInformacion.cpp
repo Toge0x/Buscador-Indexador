@@ -9,7 +9,7 @@ ostream& operator<<(ostream& s, const InformacionTermino& it){
     s << "Frecuencia total: " << it.ftc << "\tfd: " << it.l_docs.size();
     // A continuaci�n se mostrar�an todos los elementos de p.l_docs: s << "\tId.Doc: " << idDoc << "\t" << InfTermDoc;
     for(const auto& par : it.l_docs){
-        s << "\tId.doc: " << par.first << "\t" << par.second;
+        s << "\tId.Doc: " << par.first << "\t" << par.second;
     }
     return s;
 }
@@ -27,14 +27,14 @@ void InformacionTermino::addFT(){
 }
 
 void InformacionTermino::setFT(const int n){
-    ftc += n;
+    ftc = n;
 }
 
-void InformacionTermino::addTerminoEnDocumento(int idDoc, int pos){
+void InformacionTermino::addTerminoEnDocumento(int idDoc, int pos, bool almacenar){
     addFT();  // aumentamos la frecuencia del termino en la coleccion total de documentos
     InfTermDoc& infoDoc = l_docs[idDoc];    // obtenemos la informacion del termino en documento = idDoc
     infoDoc.addFT();                        // incrementamos su frecuencia
-    infoDoc.addPositionTerm(pos);           // añadimos dónde aparece
+    infoDoc.addPositionTerm(pos, almacenar);           // añadimos dónde aparece
 }
 
 int InformacionTermino::getFT() const{
@@ -60,12 +60,26 @@ bool InformacionTermino::eliminarTerminoDeDocumento(const int idDoc){
     return eliminado;
 }
 
+bool InformacionTermino::agregarPosicionADocumento(int idDoc, int pos, bool almacenarPos) {
+    ftc++;
+    InfTermDoc& infoDoc = l_docs[idDoc];
+    bool nueva = infoDoc.getFT() == 0;
+    infoDoc.addPositionTerm(pos, almacenarPos);
+    return nueva;
+}
+
+
+void InformacionTermino::insertarLDoc(int idDoc, const InfTermDoc& info){
+    l_docs[idDoc] = info;
+}
+
+
 /*
     IMPLEMENTACIÓN DE LA CLASE InfTermDoc
 */
 
 ostream& operator<<(ostream& s, const InfTermDoc& itd) {
-    s << "ft: " << itd.ft;
+    s << "ft: " << itd.ft << "\t";
     // A continuaci�n se mostrar�an todos los elementos de p.posTerm 
     // ("posicion TAB posicion TAB ... posicion, es decir nunca finalizar� en un TAB"): 
     // s << "\t" << posicion;
@@ -92,9 +106,18 @@ void InfTermDoc::addFT(){
     ft++;
 }
 
-void InfTermDoc::addPositionTerm(int pos){
-    posTerm.push_back(pos);
+void InfTermDoc::setFT(int n){
+    ft = n;
 }
+
+bool InfTermDoc::addPositionTerm(int pos, bool almacenar){
+    if(almacenar){
+        posTerm.push_back(pos);
+    }
+    ft++;
+    return (ft == 1);  // indica si era la primera vez
+}
+
 
 int InfTermDoc::getFT() const{
     return ft;
@@ -186,6 +209,7 @@ void InfColeccionDocs::agregarDocumentoAColeccion(const InfDoc& documento){
     numTotalPal += documento.getNumPal();
     numTotalPalSinParada += documento.getNumPalSinParada();
     numTotalPalDiferentes += documento.getNumPalDiferentes();
+    tamBytes += documento.getTamBytes();
     numDocs += 1;
 }
 
@@ -193,6 +217,7 @@ void InfColeccionDocs::borrarDocumentoDeColeccion(const InfDoc& documento){
     numTotalPal -= documento.getNumPal();
     numTotalPalSinParada -= documento.getNumPalSinParada();
     numTotalPalDiferentes -= documento.getNumPalDiferentes();
+    tamBytes -= documento.getTamBytes();
     numDocs -= 1;
 }
 
@@ -201,7 +226,7 @@ void InfColeccionDocs::borrarDocumentoDeColeccion(const InfDoc& documento){
 */
 
 ostream& operator<<(ostream& s, const InformacionTerminoPregunta& itp) {
-    s << "ft: " << itp.ft;
+    s << "ft: " << itp.ft << "\t";
     // A continuación se mostrarían todos los elementos de p.posTerm
     // ("posicion TAB posicion TAB ... posicion, es decir nunca finalizará en un TAB"): 
     // s << "\t" << posicion;

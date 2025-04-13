@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "indexadorInformacion.h"
+#include "stemmer.h"
 #include "tokenizador.h"
 #include <unordered_set>
 #include <unistd.h>
@@ -168,6 +169,8 @@ public:
     bool ListarDocs(const string& nomDoc) const; 
     // Devuelve true si nomDoc existe en la colecci�n y muestra por pantalla el contenido del campo privado "indiceDocs" para el documento con nombre "nomDoc": cout << nomDoc << '\t' << InfDoc << endl; . Si no existe no se muestra nada
 
+    void procesarDocumento(const string& ruta, int& id, stemmerPorter& stem);
+    void procesarTokensDeDocumento(istream& archivoTokens, int idDoc, InfDoc& infoDoc, stemmerPorter& stem);
 private:
     
     IndexadorHash();	

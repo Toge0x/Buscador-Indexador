@@ -26,11 +26,14 @@ public:
     // A�adir cuantos metodos se consideren necesarios para manejar la parte privada de la clase
     void addFT();
     void setFT(const int n);
-    void addTerminoEnDocumento(int idDoc, int pos);
+    void addTerminoEnDocumento(int idDoc, int pos, bool almacenar);
     int getFT() const;
     int getNumDocs() const;
     const unordered_map<int, InfTermDoc>& getLDocs() const;
     bool eliminarTerminoDeDocumento(const int id);
+    bool agregarPosicionADocumento(int id, int posicion, bool almcenar);
+    void insertarLDoc(int idDoc, const InfTermDoc& info);
+    
 private:
     int ftc;	// Frecuencia total del t?rmino en la coleccion
     unordered_map<int, InfTermDoc> l_docs; 
@@ -48,7 +51,9 @@ public:
 
     // A?adir cuantos m?todos se consideren necesarios para manejar la parte privada de la clase
     void addFT();
-    void addPositionTerm(int pos);
+    void setFT(int n);
+    bool addPositionTerm(int pos, bool almacenar);
+    bool addPositionDocument(int id, int pos, bool almacenar);
     int getFT() const;
     const list<int>& getPositionTerm() const;
 private:

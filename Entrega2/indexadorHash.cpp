@@ -3,7 +3,12 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <vector>
+#include <cstring>
+#include <string>
+#include <iterator>
 #include <fstream>
+
+bool EsStopWord(const unordered_set<string>& stopWords, const string& token);   // declaracion para usarla mas arriba
 
 ostream& operator<<(ostream &s, const IndexadorHash &p){
     s << "Fichero con el listado de palabras de parada: " << p.ficheroStopWords << '\n';
@@ -100,8 +105,115 @@ IndexadorHash &IndexadorHash::operator=(const IndexadorHash &ind){
     return *this;
 }
 
-bool IndexadorHash::Indexar(const string &ficheroDocumentos){ return true;}      // TODO:
+bool TerminoEsNumero(const string& str){
+    if (str.empty()) return false;
 
+    for (char c : str) {
+        if (!isdigit(static_cast<unsigned char>(c))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+
+void IndexadorHash::procesarTokensDeDocumento(istream& archivoTokens, int idDoc, InfDoc& infoDoc, stemmerPorter& stem) {
+    unordered_map<string, InformacionTermino> indice_sub;
+    istream_iterator<string> it(archivoTokens);
+    istream_iterator<string> end;
+
+    int pos = 0;
+    for(; it != end; ++it, ++pos){
+        string termino = *it;
+        infoDoc.addNumPal();    // metemos 1 palabra
+
+        if(tipoStemmer != 0){ // aplicamos stemming si está activado
+            stem.stemmer(termino, tipoStemmer);
+        }
+
+        if(EsStopWord(stopWords, termino) || termino.length() <= 1) continue;     // filtrar las palabras no validas para el indice
+
+        // añadir al índice principal si ya existía
+        if(indice[termino].getFT() > 0 || TerminoEsNumero(termino) || informacionColeccionDocs.getNumTotalPal() < 32){
+            infoDoc.addNumPalSinParada();
+            if (indice[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm)) {
+                infoDoc.addNumPalDiferentes();
+            }
+        }
+        else {
+            if (indice_sub[termino].getFT() == 0) {
+                indice_sub[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm);
+            }
+            else {
+                indice_sub.erase(termino);  // moverlo al índice principal
+                infoDoc.addNumPalSinParada();
+                if (indice[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm)) {
+                    infoDoc.addNumPalDiferentes();
+                }
+            }
+        }
+    }
+
+    indice_sub.clear();
+}
+
+
+void IndexadorHash::procesarDocumento(const string& rutaDocumento, int& idActual, stemmerPorter& stem) {
+    struct stat infoArchivo{};
+    if(stat(rutaDocumento.c_str(), &infoArchivo) != 0){     // comprobamos que el fichero existe
+        cerr << "ERROR al acceder a " << rutaDocumento << ": " << strerror(errno) << '\n';
+        return;
+    }
+
+    auto itIndexado = indiceDocs.find(rutaDocumento);   // si el fichero existe comprobamos
+    bool yaIndexado = itIndexado != indiceDocs.end();
+    if(yaIndexado && infoArchivo.st_mtim.tv_sec <= itIndexado->second.getFechaModificacion()){   // si el archivo no se ha modificado desde que se indexó
+        idActual++;     // saltamos el documento (indexacion innecesaria)
+        return;
+    }
+
+    tok.Tokenizar(rutaDocumento);   // tokenizamos el fichero si ha sido modificado para indexarlo
+    ifstream archivoTokens(rutaDocumento + ".tk");
+    if(!archivoTokens){     // si no se ha podido abrir el archivo de tokens lo saltamos
+        idActual++;
+        return;
+    }
+
+    if(yaIndexado){             // si ya estaba indexado borramos el documento del indice
+        idActual = itIndexado->second.getIdDoc();  // reutilizamos el ID
+        BorraDoc(rutaDocumento);                   // lo eliminamos antes de indexar
+    }
+
+    InfDoc infoDoc{};                   // creamos el documento a indexar
+    infoDoc.setIdDoc(idActual);         // con idActual y el tamaño en bytes
+    infoDoc.setTamBytes(infoArchivo.st_size);
+    procesarTokensDeDocumento(archivoTokens, idActual, infoDoc, stem);  // leemos los tokens, aplicamos stemming 
+
+    indiceDocs[rutaDocumento] = infoDoc;                            // agregamos el documento a la coleccion
+    informacionColeccionDocs.agregarDocumentoAColeccion(infoDoc);
+}
+
+bool IndexadorHash::Indexar(const string& ficheroDocumentos){
+    if (!ifstream(ficheroDocumentos)) {
+        cerr << "No se puede abrir el fichero de documentos: " << ficheroDocumentos << '\n';
+        return false;
+    }
+
+    ifstream listado(ficheroDocumentos);
+    int nextID = 1;
+    string rutaDocumento;
+    stemmerPorter stem;
+
+    while(getline(listado, rutaDocumento)){
+        procesarDocumento(rutaDocumento, nextID, stem);
+        ++nextID;
+    }
+    informacionColeccionDocs.setPalabrasDiferentes(indice.size());      // actualizamos el indice con las palabras totales en la coleccion
+
+    return true;
+}
 
 bool IndexadorHash::IndexarDirectorio(const string &dirAIndexar){
     struct stat dir;
@@ -138,25 +250,28 @@ void guardarTerminosIndexadosIndice(ofstream& salida, const unordered_map<string
     salida << '\n';
 }
 
-void leerTerminosIndexadosIndice(ifstream& entrada, unordered_map<string, InformacionTermino>& indice) {
+void leerTerminosIndexadosIndice(ifstream& archivo, unordered_map<string, InformacionTermino>& indice){
     int numTerminos;
-    entrada >> numTerminos;
+    archivo >> numTerminos;
 
-    for(int i = 0; i < numTerminos; ++i){   // para cada termino que aparece en el archivo
+    for(int i = 0; i < numTerminos; ++i){
         string termino;
-        int frecuenciaGlobalTermino, numDocsApareceTermino;
-        entrada >> termino >> frecuenciaGlobalTermino >> numDocsApareceTermino; // leemos el termino, su FTC y numDocs en los que aparece
-        for(int j = 0; j < numDocsApareceTermino; j++){             // para cada documento en el que aparece el termino 
-            int idDocumento, frecuenciaTerminoDocumento, posSize;
-            entrada >> idDocumento >> frecuenciaTerminoDocumento >> posSize;
-            for(int k = 0; k < frecuenciaTerminoDocumento; k++){        // para cada vez que aparece en el documento guardar la posicion donde aparece
-                int posTerm;
-                entrada >> posTerm;
-                indice[termino].addTerminoEnDocumento(idDocumento, posTerm);
+        int ftTotal, numDocs;
+        archivo >> termino >> ftTotal >> numDocs;
+
+        for(int j = 0; j < numDocs; ++j){
+            int idDoc, ftDoc, numPos;
+            archivo >> idDoc >> ftDoc >> numPos;
+
+            for(int k = 0; k < numPos; ++k){
+                int pos;
+                archivo >> pos;
+                indice[termino].agregarPosicionADocumento(idDoc, pos, true);
             }
         }
     }
 }
+
 
 void guardarInformacionDocumento(ofstream& salida, const pair<const string, InfDoc>& entradaDoc){
     const string& nombreDocumento = entradaDoc.first;
@@ -325,7 +440,7 @@ bool IndexadorHash::RecuperarIndexacion(const string &directorioIndexacion){
             cerr << "No se pudo abrir el archivo de stopwords." << '\n';
             correcto = false;
         }
-        
+        tok = Tokenizador(delimitadores, casosEspeciales, pasarMinusculas);     // casi se me olvida xd
         // recuperar informacion de los documentos y terminos
         leerTerminosIndexadosIndice(archivo, indice);   // leemos cada uno de los campos privados (clases externas)
         int cantidadDocumentos = informacionColeccionDocs.getNumDocs();
@@ -445,21 +560,20 @@ bool IndexadorHash::Devuelve(const string &word, InformacionTermino &inf) const{
     }
 }
 
-bool IndexadorHash::Devuelve(const string& word, const string& nomDoc, InfTermDoc& i) const{
-    bool correcto = true;
-    auto doc = indiceDocs.find(nomDoc);     //                                     word
-    auto pos_indice = indice.find(word);    // si lo encuentra sera un hash map <string, InformacionTermino>
+bool IndexadorHash::Devuelve(const string& word, const string& nomDoc, InfTermDoc& i) const {
+    auto doc = indiceDocs.find(nomDoc);
+    auto pos_indice = indice.find(word);
 
-    if(doc != indiceDocs.end() && pos_indice != indice.end()){     // si el documento esta indexado y la palabra tambien
-        auto aux = pos_indice->second.getLDocs().find(doc->second.getIdDoc());  // buscamos en los documentos en los que aparece word con id de documento IdDoc
-        if(aux != pos_indice->second.getLDocs().end()){                         // el documento en el que aparece word existe
-            i = aux->second;
+    if(doc != indiceDocs.end() && pos_indice != indice.end()) {
+        int idDoc = doc->second.getIdDoc();
+        auto itLdocs = pos_indice->second.getLDocs().find(idDoc);
+        if(itLdocs != pos_indice->second.getLDocs().end()) {
+            i = itLdocs->second;
+            return true;
         }
-    }else{                  // si alguno no devolvemos uno vacio
-        i = InfTermDoc{};
-        correcto = false;
     }
-    return correcto;
+    i = InfTermDoc{};
+    return false;
 }
 
 bool IndexadorHash::Existe(const string &word) const{

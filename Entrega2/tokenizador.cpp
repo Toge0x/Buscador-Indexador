@@ -195,7 +195,6 @@ string Tokenizador::TransformarMinusculaSinAcentos(const string& palabra) const{
 
 // Tokeniza str devolviendo el resultado en tokens. La lista tokens se vaciar� antes de almacenar el resultado de la tokenizaci�n. 
 void Tokenizador::Tokenizar(const string& str, list<std::string>& tokens) const{
-    tokens.clear();
     string palabra;
     char caracter;
 
@@ -230,32 +229,35 @@ Tokeniza el fichero i guardando la salida en el fichero f (una palabra en cada l
 (p.ej. que no exista el archivo i)
 
 */
-bool Tokenizador::Tokenizar(const string& i, const string& f) const{
+bool Tokenizador::Tokenizar(const string& i, const string& f) const {
     ifstream entrada(i);
+    if (!entrada.is_open()) {
+        cerr << "ERROR: No se puede abrir el archivo: " << i << endl;
+        return false;
+    }
+
+    ofstream salida(f);
+    if (!salida.is_open()) {
+        cerr << "ERROR: No se puede crear el archivo: " << f << endl;
+        return false;
+    }
+
     string linea;
     list<string> tokens;
-
-    if(entrada.is_open() == false){
-        cerr << "ERROR: No existe el archivo: " << i << endl;
-        return false;
-    }else{
-        while(entrada.eof() == false){
-            linea = "";
-            getline(entrada, linea);
-            if(linea.length() != 0){
-                this->Tokenizar(linea, tokens);
-            }
+    while (getline(entrada, linea)) {
+        tokens.clear();
+        Tokenizar(linea, tokens);  // procesar la línea
+        for (const string& tok : tokens) {
+            salida << tok << '\n';  // una palabra por línea
         }
-        entrada.close();
-        ofstream salida(f);
-        list<string>::iterator itS;
-        for(itS = tokens.begin(); itS != tokens.end(); itS++){
-            salida << (*itS) << "\n";
-        }
-        salida.close();
-        return true;
     }
+
+    entrada.close();
+    salida.close();
+    return true;
 }
+
+
 
 /*
 Tokeniza el fichero i guardando la salida en un fichero de nombre i a�adi�ndole extensi�n .tk
@@ -264,14 +266,10 @@ y que contendr� una palabra en cada l�nea del fichero.
     - Devolver� true si se realiza la tokenizaci�n de forma correcta;
     - False en caso contrario enviando a cerr el mensaje correspondiente (p.ej. que no exista el archivo i)
 */
-bool Tokenizador::Tokenizar(const string & i) const{
-    bool correcto = false;
-    string nombreSalida = i + ".tk";
-    if(this->Tokenizar(i, nombreSalida)){
-        correcto = true;
-    }
-    return correcto;
+bool Tokenizador::Tokenizar(const string& i) const{
+    return this->Tokenizar(i, i + ".tk");
 }
+
 
 /*
 Tokeniza el fichero i que contiene un nombre de fichero por l�nea guardando la salida en ficheros
