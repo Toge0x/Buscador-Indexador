@@ -109,7 +109,8 @@ public:
     // Devuelve true si word (aplic�ndole el tratamiento de stemming y may�sculas correspondiente) est� indexado, devolviendo su informaci�n almacenada "inf". En caso que no est�, devolver�a "inf" vac�o
 
     bool Devuelve(const string& word, const string& nomDoc, InfTermDoc& InfDoc) const;  
-    // Devuelve true si word (aplic�ndole el tratamiento de stemming y may�sculas correspondiente) est� indexado y aparece en el documento de nombre nomDoc, en cuyo caso devuelve la informaci�n almacenada para word en el documento. En caso que no est�, devolver�a "InfDoc" vac�o
+    // Devuelve true si word (aplic�ndole el tratamiento de stemming y may�sculas correspondiente) est� indexado y aparece en el documento de 
+    // nombre nomDoc, en cuyo caso devuelve la informaci�n almacenada para word en el documento. En caso que no est�, devolver�a "InfDoc" vac�o
 
     bool Existe(const string& word) const;	 
     // Devuelve true si word (aplic�ndole el tratamiento de stemming y may�sculas correspondiente) aparece como t�rmino indexado

@@ -229,231 +229,231 @@ bool IndexadorHash::IndexarDirectorio(const string &dirAIndexar){
     }
 }
 
-void guardarTerminosIndexadosIndice(ofstream& salida, const unordered_map<string, InformacionTermino>& indice){
-    salida << indice.size() << ' ';
-    for(const auto& [termino, infoTermino] : indice){
-        salida << termino << ' ' << infoTermino.getFT() << ' ';     // frecuencia del termino en TODA LA COLECCION
+    void guardarTerminosIndexadosIndice(ofstream& salida, const unordered_map<string, InformacionTermino>& indice){
+        salida << indice.size() << ' ';
+        for(const auto& [termino, infoTermino] : indice){
+            salida << termino << ' ' << infoTermino.getFT() << ' ';     // frecuencia del termino en TODA LA COLECCION
 
-        const auto& apariciones = infoTermino.getLDocs();           // documentos en los que aparece el termino
-        salida << apariciones.size() << ' ';
+            const auto& apariciones = infoTermino.getLDocs();           // documentos en los que aparece el termino
+            salida << apariciones.size() << ' ';
 
-        for(const auto& [idDoc, datosDoc] : apariciones){
-            salida << idDoc << ' ' << datosDoc.getFT() << ' ';  // frecuencia del termino en el documento idDoc
+            for(const auto& [idDoc, datosDoc] : apariciones){
+                salida << idDoc << ' ' << datosDoc.getFT() << ' ';  // frecuencia del termino en el documento idDoc
 
-            const auto& posiciones = datosDoc.getPositionTerm();    // donde aparece el termino en el documento idDoc
-            salida << posiciones.size() << ' ';
-            for(int pos : posiciones){
-                salida << pos << ' ';
+                const auto& posiciones = datosDoc.getPositionTerm();    // donde aparece el termino en el documento idDoc
+                salida << posiciones.size() << ' ';
+                for(int pos : posiciones){
+                    salida << pos << ' ';
+                }
+            }
+        }
+        salida << '\n';
+    }
+
+    void leerTerminosIndexadosIndice(ifstream& archivo, unordered_map<string, InformacionTermino>& indice){
+        int numTerminos;
+        archivo >> numTerminos;
+
+        for(int i = 0; i < numTerminos; ++i){
+            string termino;
+            int ftTotal, numDocs;
+            archivo >> termino >> ftTotal >> numDocs;
+
+            for(int j = 0; j < numDocs; ++j){
+                int idDoc, ftDoc, numPos;
+                archivo >> idDoc >> ftDoc >> numPos;
+
+                for(int k = 0; k < numPos; ++k){
+                    int pos;
+                    archivo >> pos;
+                    indice[termino].agregarPosicionADocumento(idDoc, pos, true);
+                }
             }
         }
     }
-    salida << '\n';
-}
 
-void leerTerminosIndexadosIndice(ifstream& archivo, unordered_map<string, InformacionTermino>& indice){
-    int numTerminos;
-    archivo >> numTerminos;
 
-    for(int i = 0; i < numTerminos; ++i){
+    void guardarInformacionDocumento(ofstream& salida, const pair<const string, InfDoc>& entradaDoc){
+        const string& nombreDocumento = entradaDoc.first;
+        const InfDoc& info = entradaDoc.second;
+
+        salida << nombreDocumento << ' '
+            << info.getIdDoc() << ' '
+            << info.getNumPal() << ' '
+            << info.getNumPalSinParada() << ' '
+            << info.getNumPalDiferentes() << ' '
+            << info.getTamBytes() << ' '
+            << info.getFechaModificacion() << '\n';
+    }
+
+    void leerInformacionDocumentos(ifstream& entrada, unordered_map<string, InfDoc>& indiceDocs, int cantidadDocs){
+        string nombreDocumento;
+        int idDocumento, totalPalabras, palabrasSinParada, palabrasDiferentes, bytes = 0;
+        time_t fecha = 0;
+        for(int i = 0; i < cantidadDocs; i++){ 
+            entrada >> nombreDocumento >> idDocumento >> totalPalabras >> palabrasSinParada >> palabrasDiferentes >> bytes >> fecha;
+            InfDoc informacionDocumento{};
+            informacionDocumento.setIdDoc(idDocumento);
+            informacionDocumento.setNumPal(totalPalabras);
+            informacionDocumento.setNumPalSinParada(palabrasSinParada);
+            informacionDocumento.setNumPalDifernetes(palabrasDiferentes);
+            informacionDocumento.setTamBytes(bytes);
+            informacionDocumento.setFechaModificacion(fecha);
+            indiceDocs.emplace(nombreDocumento, informacionDocumento);  // insertamos directamente en el hashmap <nombreDoc, infoDocumento>
+        }
+
+    }
+
+    void guardarInformacionColeccionDocs(ofstream& salida, const InfColeccionDocs& coleccion){
+        int nDocs = coleccion.getNumDocs();
+        int totalPal = coleccion.getNumTotalPal();
+        int sinStop = coleccion.getNumTotalPalSinParada();
+        int diferentes = coleccion.getNumTotalPalDiferentes();
+        int tam = coleccion.getTamBytes();
+
+        salida << nDocs << ' ' << totalPal << ' ' << sinStop << ' '<< diferentes << ' ' << tam << '\n';
+    }
+
+    void leerInformacionColeccionDocs(ifstream& entrada, InfColeccionDocs& coleccionDocumentos){
+        int cantidadDocumentos, totalPal, palabrasSinStop, palabrasDiferentes, tamBytes = 0;
+        entrada >> cantidadDocumentos >> totalPal >> palabrasSinStop >> palabrasDiferentes >> tamBytes;     // leemos los campos de la coleccion
+        coleccionDocumentos.setNumDocs(coleccionDocumentos.getNumDocs() + cantidadDocumentos);              // añadimos los campos leidos a cada uno de los campos de la coleccion
+        coleccionDocumentos.setTotalPalabras(coleccionDocumentos.getNumTotalPal() + totalPal);              // existente + leido
+        coleccionDocumentos.setPalabrasSinParada(coleccionDocumentos.getNumTotalPalSinParada() + palabrasSinStop);
+        coleccionDocumentos.setPalabrasDiferentes(coleccionDocumentos.getNumTotalPalDiferentes() + palabrasDiferentes);
+        coleccionDocumentos.setBytes(coleccionDocumentos.getTamBytes() + tamBytes);
+    }
+
+    void guardarInformacionPregunta(ofstream& salida, const InformacionPregunta& pregunta){
+        salida << pregunta.getNumTotalPal() << ' ' << pregunta.getNumTotalPalSinParada() << ' ' << pregunta.getNumTotalPalDiferentes() << '\n';
+    }
+
+    void leerInformacionPregunta(ifstream& entrada, InformacionPregunta& pregunta){
+        int totalPalabras, palabrasSinParada, palabrasDiferentes = 0;
+
+        entrada >> totalPalabras >> palabrasSinParada >> palabrasDiferentes;
+        pregunta.incrementarNPalabras(totalPalabras);
+        pregunta.incrementarNPalabrasSinParada(palabrasSinParada);
+        pregunta.incrementarNPalabrasDiferentes(palabrasDiferentes);
+
+    }
+
+    void guardarTerminoPregunta(ofstream& salida, const pair<const string, InformacionTerminoPregunta>& entrada){
+        const string& termino = entrada.first;
+        const InformacionTerminoPregunta& info = entrada.second;
+
+        salida << termino << ' ' << info.getFT() << ' ';
+
+        const auto& posiciones = info.getSortedPositions();
+        for(int pos : posiciones){
+            salida << pos << ' ';
+        }
+
+        salida << '\n';
+    }
+
+    void leerTerminoPregunta(ifstream& entrada, unordered_map<string, InformacionTerminoPregunta>& indicePregunta) {
         string termino;
-        int ftTotal, numDocs;
-        archivo >> termino >> ftTotal >> numDocs;
-
-        for(int j = 0; j < numDocs; ++j){
-            int idDoc, ftDoc, numPos;
-            archivo >> idDoc >> ftDoc >> numPos;
-
-            for(int k = 0; k < numPos; ++k){
+        int ft;
+        while(entrada >> termino >> ft){
+            InformacionTerminoPregunta info;
+            for (int i = 0; i < ft; ++i) {
                 int pos;
-                archivo >> pos;
-                indice[termino].agregarPosicionADocumento(idDoc, pos, true);
+                if(!(entrada >> pos)) break;  // por si el archivo termina mal
+                info.addItemToPos(pos);
+                info.addFT();
+            }
+            indicePregunta.emplace(termino, info);
+        }
+    }
+
+    bool IndexadorHash::GuardarIndexacion() const{
+        bool correcto = true;
+        string fileIndexacion = directorioIndice + "/indexacion-amsm30.ua";
+        struct stat info{};
+        bool directorioExiste = (stat(directorioIndice.c_str(), &info) == 0) && S_ISDIR(info.st_mode);
+
+        if(directorioExiste == false){
+            int resultado = mkdir(directorioIndice.c_str(), 0777);  // resultado != 0 no se ha creado el directorio
+            if(resultado != 0){
+                std::cerr << "No se pudo crear el directorio \"" << directorioIndice << "\": " << strerror(errno) << '\n';  // error de creacion 
+                correcto = false;
             }
         }
-    }
-}
-
-
-void guardarInformacionDocumento(ofstream& salida, const pair<const string, InfDoc>& entradaDoc){
-    const string& nombreDocumento = entradaDoc.first;
-    const InfDoc& info = entradaDoc.second;
-
-    salida << nombreDocumento << ' '
-           << info.getIdDoc() << ' '
-           << info.getNumPal() << ' '
-           << info.getNumPalSinParada() << ' '
-           << info.getNumPalDiferentes() << ' '
-           << info.getTamBytes() << ' '
-           << info.getFechaModificacion() << '\n';
-}
-
-void leerInformacionDocumentos(ifstream& entrada, unordered_map<string, InfDoc>& indiceDocs, int cantidadDocs){
-    string nombreDocumento;
-    int idDocumento, totalPalabras, palabrasSinParada, palabrasDiferentes, bytes = 0;
-    time_t fecha = 0;
-    for(int i = 0; i < cantidadDocs; i++){ 
-        entrada >> nombreDocumento >> idDocumento >> totalPalabras >> palabrasSinParada >> palabrasDiferentes >> bytes >> fecha;
-        InfDoc informacionDocumento{};
-        informacionDocumento.setIdDoc(idDocumento);
-        informacionDocumento.setNumPal(totalPalabras);
-        informacionDocumento.setNumPalSinParada(palabrasSinParada);
-        informacionDocumento.setNumPalDifernetes(palabrasDiferentes);
-        informacionDocumento.setTamBytes(bytes);
-        informacionDocumento.setFechaModificacion(fecha);
-        indiceDocs.emplace(nombreDocumento, informacionDocumento);  // insertamos directamente en el hashmap <nombreDoc, infoDocumento>
-    }
-
-}
-
-void guardarInformacionColeccionDocs(ofstream& salida, const InfColeccionDocs& coleccion){
-    int nDocs = coleccion.getNumDocs();
-    int totalPal = coleccion.getNumTotalPal();
-    int sinStop = coleccion.getNumTotalPalSinParada();
-    int diferentes = coleccion.getNumTotalPalDiferentes();
-    int tam = coleccion.getTamBytes();
-
-    salida << nDocs << ' ' << totalPal << ' ' << sinStop << ' '<< diferentes << ' ' << tam << '\n';
-}
-
-void leerInformacionColeccionDocs(ifstream& entrada, InfColeccionDocs& coleccionDocumentos){
-    int cantidadDocumentos, totalPal, palabrasSinStop, palabrasDiferentes, tamBytes = 0;
-    entrada >> cantidadDocumentos >> totalPal >> palabrasSinStop >> palabrasDiferentes >> tamBytes;     // leemos los campos de la coleccion
-    coleccionDocumentos.setNumDocs(coleccionDocumentos.getNumDocs() + cantidadDocumentos);              // añadimos los campos leidos a cada uno de los campos de la coleccion
-    coleccionDocumentos.setTotalPalabras(coleccionDocumentos.getNumTotalPal() + totalPal);              // existente + leido
-    coleccionDocumentos.setPalabrasSinParada(coleccionDocumentos.getNumTotalPalSinParada() + palabrasSinStop);
-    coleccionDocumentos.setPalabrasDiferentes(coleccionDocumentos.getNumTotalPalDiferentes() + palabrasDiferentes);
-    coleccionDocumentos.setBytes(coleccionDocumentos.getTamBytes() + tamBytes);
-}
-
-void guardarInformacionPregunta(ofstream& salida, const InformacionPregunta& pregunta){
-    salida << pregunta.getNumTotalPal() << ' ' << pregunta.getNumTotalPalSinParada() << ' ' << pregunta.getNumTotalPalDiferentes() << '\n';
-}
-
-void leerInformacionPregunta(ifstream& entrada, InformacionPregunta& pregunta){
-    int totalPalabras, palabrasSinParada, palabrasDiferentes = 0;
-
-    entrada >> totalPalabras >> palabrasSinParada >> palabrasDiferentes;
-    pregunta.incrementarNPalabras(totalPalabras);
-    pregunta.incrementarNPalabrasSinParada(palabrasSinParada);
-    pregunta.incrementarNPalabrasDiferentes(palabrasDiferentes);
-
-}
-
-void guardarTerminoPregunta(ofstream& salida, const pair<const string, InformacionTerminoPregunta>& entrada){
-    const string& termino = entrada.first;
-    const InformacionTerminoPregunta& info = entrada.second;
-
-    salida << termino << ' ' << info.getFT() << ' ';
-
-    const auto& posiciones = info.getSortedPositions();
-    for(int pos : posiciones){
-        salida << pos << ' ';
-    }
-
-    salida << '\n';
-}
-
-void leerTerminoPregunta(ifstream& entrada, unordered_map<string, InformacionTerminoPregunta>& indicePregunta) {
-    string termino;
-    int ft;
-    while(entrada >> termino >> ft){
-        InformacionTerminoPregunta info;
-        for (int i = 0; i < ft; ++i) {
-            int pos;
-            if(!(entrada >> pos)) break;  // por si el archivo termina mal
-            info.addItemToPos(pos);
-            info.addFT();
-        }
-        indicePregunta.emplace(termino, info);
-    }
-}
-
-bool IndexadorHash::GuardarIndexacion() const{
-    bool correcto = true;
-    string fileIndexacion = directorioIndice + "/indexacion-amsm30.ua";
-    struct stat info{};
-    bool directorioExiste = (stat(directorioIndice.c_str(), &info) == 0) && S_ISDIR(info.st_mode);
-
-    if(directorioExiste == false){
-        int resultado = mkdir(directorioIndice.c_str(), 0777);  // resultado != 0 no se ha creado el directorio
-        if(resultado != 0){
-            std::cerr << "No se pudo crear el directorio \"" << directorioIndice << "\": " << strerror(errno) << '\n';  // error de creacion 
+        // si todo ha ido bien y se ha creado el directorio de indexacion
+        ofstream archivo(fileIndexacion, ios::binary);  // binario para guardar la indexacion
+        if(archivo.is_open() == false){
             correcto = false;
+            cerr << "No se pudo abrir el archivo" << '\n';
         }
-    }
-    // si todo ha ido bien y se ha creado el directorio de indexacion
-    ofstream archivo(fileIndexacion, ios::binary);  // binario para guardar la indexacion
-    if(archivo.is_open() == false){
-        correcto = false;
-        cerr << "No se pudo abrir el archivo" << '\n';
-    }
-    // guardamos 1 a 1 los campos privados
-    archivo << ficheroStopWords << '\n';
-    archivo << tok.DelimitadoresPalabra() << '\n';
-    archivo << tok.CasosEspeciales() << '\n';
-    archivo << tok.PasarAminuscSinAcentos() << '\n';
-    archivo << directorioIndice << '\n';
-    archivo << tipoStemmer << '\n';
-    archivo << almacenarPosTerm << '\n';
+        // guardamos 1 a 1 los campos privados
+        archivo << ficheroStopWords << '\n';
+        archivo << tok.DelimitadoresPalabra() << '\n';
+        archivo << tok.CasosEspeciales() << '\n';
+        archivo << tok.PasarAminuscSinAcentos() << '\n';
+        archivo << directorioIndice << '\n';
+        archivo << tipoStemmer << '\n';
+        archivo << almacenarPosTerm << '\n';
 
-    guardarTerminosIndexadosIndice(archivo, indice);
-    for(const auto& doc : indiceDocs)
-        guardarInformacionDocumento(archivo, doc);
-    guardarInformacionColeccionDocs(archivo, informacionColeccionDocs);
-    guardarInformacionPregunta(archivo, infPregunta);
-    for(const auto& terminoPregunta : indicePregunta)
-        guardarTerminoPregunta(archivo, terminoPregunta);
+        guardarTerminosIndexadosIndice(archivo, indice);
+        guardarInformacionColeccionDocs(archivo, informacionColeccionDocs);
+        for(const auto& doc : indiceDocs)
+            guardarInformacionDocumento(archivo, doc);
+        guardarInformacionPregunta(archivo, infPregunta);
+        for(const auto& terminoPregunta : indicePregunta)
+            guardarTerminoPregunta(archivo, terminoPregunta);
 
-    archivo.close();
-    return correcto;
-}
-
-bool IndexadorHash::RecuperarIndexacion(const string &directorioIndexacion){
-    bool correcto = true;
-    ifstream archivo(directorioIndexacion + "/indexacion-amsm30.ua", ios::binary);
-    string delimitadores;
-    bool casosEspeciales, pasarMinusculas;
-
-    indice.clear();     // borramos los posibles datos en estos campos
-    indiceDocs.clear();
-    indicePregunta.clear();
-
-    if(archivo.is_open() == false){
-        cerr << "No se pudo abrir el archivo de indexación." << '\n';   // no se abre el fichero que contiene la indexacion
-        correcto = false;
-    }else{
-        getline(archivo, ficheroStopWords); // leemos todos los campos del fichero de indexacion
-        getline(archivo, delimitadores);    // está literalmente arriba como leerlo
-        archivo >> casosEspeciales;
-        archivo >> pasarMinusculas;
-        archivo.ignore();                   // salto de linea
-        getline(archivo, directorioIndice);
-        archivo >> tipoStemmer;
-        archivo >> almacenarPosTerm;
-
-        ifstream stopwordsFile(ficheroStopWords);   // abrimos el fichero de stopwords
-        if(stopwordsFile.is_open() == true){
-            string palabra;
-            while(stopwordsFile >> palabra){
-                stopWords.insert(palabra);          // metemos palabra a palabra en stopWords
-            }
-        }else{
-            cerr << "No se pudo abrir el archivo de stopwords." << '\n';
-            correcto = false;
-        }
-        tok = Tokenizador(delimitadores, casosEspeciales, pasarMinusculas);     // casi se me olvida xd
-        // recuperar informacion de los documentos y terminos
-        leerTerminosIndexadosIndice(archivo, indice);   // leemos cada uno de los campos privados (clases externas)
-        int cantidadDocumentos = informacionColeccionDocs.getNumDocs();
-        leerInformacionDocumentos(archivo, indiceDocs, cantidadDocumentos);     // NO SE PUEDE SABER DESDE INDICEDOCS LA CANTIDAD DE DOCUMENTOS INDEXADOS
-        leerInformacionColeccionDocs(archivo, informacionColeccionDocs);
-        // recuperar informacion de la pregunta
-        leerInformacionPregunta(archivo, infPregunta);
-        leerTerminoPregunta(archivo, indicePregunta);
         archivo.close();
+        return correcto;
     }
-    
-    return correcto;
-}
+
+    bool IndexadorHash::RecuperarIndexacion(const string &directorioIndexacion){
+        bool correcto = true;
+        ifstream archivo(directorioIndexacion + "/indexacion-amsm30.ua", ios::binary);
+        string delimitadores;
+        bool casosEspeciales, pasarMinusculas;
+
+        indice.clear();     // borramos los posibles datos en estos campos
+        indiceDocs.clear();
+        indicePregunta.clear();
+
+        if(archivo.is_open() == false){
+            cerr << "No se pudo abrir el archivo de indexación." << '\n';   // no se abre el fichero que contiene la indexacion
+            correcto = false;
+        }else{
+            getline(archivo, ficheroStopWords); // leemos todos los campos del fichero de indexacion
+            getline(archivo, delimitadores);    // está literalmente arriba como leerlo
+            archivo >> casosEspeciales;
+            archivo >> pasarMinusculas;
+            archivo.ignore();                   // salto de linea
+            getline(archivo, directorioIndice);
+            archivo >> tipoStemmer;
+            archivo >> almacenarPosTerm;
+
+            ifstream stopwordsFile(ficheroStopWords);   // abrimos el fichero de stopwords
+            if(stopwordsFile.is_open() == true){
+                string palabra;
+                while(stopwordsFile >> palabra){
+                    stopWords.insert(palabra);          // metemos palabra a palabra en stopWords
+                }
+            }else{
+                cerr << "No se pudo abrir el archivo de stopwords." << '\n';
+                correcto = false;
+            }
+            tok = Tokenizador(delimitadores, casosEspeciales, pasarMinusculas);     // casi se me olvida xd
+            // recuperar informacion de los documentos y terminos
+            leerTerminosIndexadosIndice(archivo, indice);   // leemos cada uno de los campos privados (clases externas)
+            leerInformacionColeccionDocs(archivo, informacionColeccionDocs);
+            int cantidadDocumentos = informacionColeccionDocs.getNumDocs();
+            leerInformacionDocumentos(archivo, indiceDocs, cantidadDocumentos);     // NO SE PUEDE SABER DESDE INDICEDOCS LA CANTIDAD DE DOCUMENTOS INDEXADOS
+            // recuperar informacion de la pregunta
+            leerInformacionPregunta(archivo, infPregunta);
+            leerTerminoPregunta(archivo, indicePregunta);
+            archivo.close();
+        }
+        
+        return correcto;
+    }
 
 void IndexadorHash::ImprimirIndexacion() const{
     cout << "Terminos indexados: " << "\n";
@@ -561,8 +561,18 @@ bool IndexadorHash::Devuelve(const string &word, InformacionTermino &inf) const{
 }
 
 bool IndexadorHash::Devuelve(const string& word, const string& nomDoc, InfTermDoc& i) const {
+    string palabra;
+    if(tok.PasarAminuscSinAcentos()){
+        palabra = tok.TransformarMinusculaSinAcentos(word);
+    }else{
+        palabra = word;
+    }
+    if(tipoStemmer != 0){
+        stemmerPorter stem;
+        stem.stemmer(palabra, tipoStemmer);
+    }
     auto doc = indiceDocs.find(nomDoc);
-    auto pos_indice = indice.find(word);
+    auto pos_indice = indice.find(palabra);
 
     if(doc != indiceDocs.end() && pos_indice != indice.end()) {
         int idDoc = doc->second.getIdDoc();

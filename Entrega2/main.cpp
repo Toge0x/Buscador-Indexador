@@ -9,35 +9,55 @@ using namespace std;
 int
 main(void)
 {
-IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, true);
+IndexadorHash b("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, true);
 
-string preg1;
-InformacionPregunta infPreg1;
-InformacionTerminoPregunta inf1;
+b.Indexar("./listaFicheros_corto.txt");
+b.GuardarIndexacion();
 
-a.IndexarPregunta("pal1 yo pal2 pal1. pal3 el  ");
-a.IndexarPregunta("pal1 yo pal3 el  pal7");
+IndexadorHash a("./indicePrueba");
+a.GuardarIndexacion();
 
-if(a.DevuelvePregunta(preg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << preg1 << endl;
+cout << a.DevolverDelimitadores () << endl; 
+cout << a.DevolverDirIndice () << endl; 
+cout << a.DevolverTipoStemming () << endl; 
+
+InformacionTermino inf1;
+
+if(a.Devuelve("pal1", inf1))
+	cout << "pal1 SE HA INDEXADO: " << inf1 << endl;
 else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+	cout << "pal1 NO SE HA INDEXADO" << endl;
 
-
-if(a.DevuelvePregunta("pal1", inf1))
-	cout << "pal1 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
+if(a.Devuelve("pal7", inf1))
+	cout << "pal7 SE HA INDEXADO: " << inf1 << endl;
 else
-	cout << "pal1 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
+	cout << "pal7 NO SE HA INDEXADO" << endl;
 
-if(a.DevuelvePregunta("pal7", inf1))
-	cout << "pal7 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
+InfTermDoc infDoc1;
+
+if(a.Devuelve("pal1", "corpus_corto/fichero1.txt", infDoc1))
+	cout << "pal1 SE HA INDEXADO EN corpus_corto/fichero1.txt: " << infDoc1 << endl;
 else
-	cout << "pal7 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
+	cout << "pal1 NO SE HA INDEXADO EN corpus_corto/fichero1.txt" << endl;
 
-if(a.DevuelvePregunta(infPreg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << infPreg1 << endl;
+if(a.Devuelve("pal1", "fichero1.txt", infDoc1))
+	cout << "pal1 SE HA INDEXADO EN fichero1.txt: " << infDoc1 << endl;
 else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+	cout << "pal1 NO SE HA INDEXADO EN fichero1.txt" << endl;
 
+if(a.Devuelve("pal7", "corpus_corto/fichero1.txt", infDoc1))
+	cout << "pal7 SE HA INDEXADO EN corpus_corto/fichero1.txt: " << infDoc1 << endl;
+else
+	cout << "pal7 NO SE HA INDEXADO EN corpus_corto/fichero1.txt" << endl;
 
-}
+if(a.Existe("pal1"))
+	cout << "pal1 SE HA INDEXADO" << endl;
+else
+	cout << "pal1 NO SE HA INDEXADO" << endl;
+
+if(a.Existe("pal7"))
+	cout << "pal7 SE HA INDEXADO" << endl;
+else
+	cout << "pal7 NO SE HA INDEXADO" << endl;
+
+}	
