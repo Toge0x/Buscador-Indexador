@@ -123,14 +123,14 @@ bool Buscador::Buscar(const int& numDocumentos, const int& numPregunta){
     vector<ResultadoRI> resultados;
 
     if(formSimilitud == 0)
-        resultados = calculoDFR(numPregunta);
+        resultados = calculoDFR(numPregunta);       // devuelve un vector con los calculos por relevancia
     else if(formSimilitud == 1)
-        resultados = calculoBM25(numPregunta);
+        resultados = calculoBM25(numPregunta); 
     else
         return false;
 
-    sort(resultados.begin(), resultados.end());
-    resultados.resize(std::min(static_cast<size_t>(numDocumentos), resultados.size()));
+    sort(resultados.begin(), resultados.end(), std::greater<ResultadoRI>());                // ordenamos de mayor a menor
+    resultados.resize(std::min(static_cast<size_t>(numDocumentos), resultados.size()));     // recortamos el vector para los nDocs mas relevantes
 
     for(const auto& res : resultados){
         docsOrdenados.push(res);
