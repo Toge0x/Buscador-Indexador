@@ -13,6 +13,7 @@ using namespace std;
 class IndexadorHash {
 
     friend ostream& operator<<(ostream& s, const IndexadorHash& p);
+    friend class Buscador;
 
 public:
 
