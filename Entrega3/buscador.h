@@ -65,9 +65,17 @@ class Buscador : public IndexadorHash {
         // Guarda los resultados más relevantes (hasta numDocumentos) en docsOrdenados
         bool Buscar(const int& numDocumentos = 99999);
 
+        vector<ResultadoRI> calculoDFR(const int& numPregunta);
+
+        vector<ResultadoRI> calculoBM25(const int& numPregunta);
+
+        bool Buscar(const int& numDocumentos, const int& numPregunta);
+
         // Realiza la búsqueda sobre un conjunto de preguntas de un directorio
         // Se guarda el top numDocumentos por cada pregunta, entre numPregInicio y numPregFin
         bool Buscar(const string& dirPreguntas, const int& numDocumentos, const int& numPregInicio, const int& numPregFin);
+
+        string RecuperarNombreDocumento(const int& idDoc) const;
 
         // Imprime por pantalla los resultados de la última búsqueda
         // Mostrará como máximo numDocumentos documentos por pregunta
