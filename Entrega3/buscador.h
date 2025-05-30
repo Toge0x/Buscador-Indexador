@@ -16,6 +16,7 @@ class ResultadoRI {
     friend ostream& operator<<(ostream& os, const ResultadoRI& res);
 
 public:
+    ResultadoRI();
     // Constructor: recibe la similitud, ID de documento y número de pregunta
     ResultadoRI(const double& kvSimilitud, const long int& kidDoc, const int& np);
 
@@ -32,6 +33,7 @@ public:
     // Ordena de forma decreciente según la similitud (si son de la misma pregunta)
     // o por número de pregunta creciente (para mantener agrupación)
     bool operator<(const ResultadoRI& rhs) const;
+    bool operator>(const ResultadoRI& rhs) const;
 
 private:
     double vSimilitud;  // Valor de similitud
@@ -79,7 +81,7 @@ class Buscador : public IndexadorHash {
 
         // Imprime por pantalla los resultados de la última búsqueda
         // Mostrará como máximo numDocumentos documentos por pregunta
-        void ImprimirResultadoBusqueda(const int& numDocumentos = 99999) const;
+        void ImprimirResultadoBusqueda(const int& numDocumentos) const;
 
         // Igual que la anterior, pero guarda la salida en un fichero
         // Devuelve false si no consigue crear el archivo
@@ -103,6 +105,8 @@ class Buscador : public IndexadorHash {
 
         // Devuelve los valores de las constantes k1 y b del modelo BM25
         void DevolverParametrosBM25(double& kk1, double& kb) const;
+
+        void DevolverTerminosEnPregunta();
 
     private:
         // Constructor privado prohibido: no se permite crear un Buscador sin indexación previa

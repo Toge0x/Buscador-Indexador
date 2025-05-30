@@ -262,6 +262,8 @@ list<int> InformacionTerminoPregunta::getSortedPositions() const{
     return ordenadas;
 }
 
+list<int> InformacionTerminoPregunta::getPositions() const { return posTerm; }
+
 /*
     IMPLEMENTACIÓN DE LA CLASE InformacionPregunta
 */

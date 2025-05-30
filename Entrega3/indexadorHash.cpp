@@ -120,44 +120,30 @@ bool TerminoEsNumero(const string& str){
 
 
 void IndexadorHash::procesarTokensDeDocumento(istream& archivoTokens, int idDoc, InfDoc& infoDoc, stemmerPorter& stem) {
-    unordered_map<string, InformacionTermino> indice_sub;
     istream_iterator<string> it(archivoTokens);
     istream_iterator<string> end;
 
     int pos = 0;
-    for(; it != end; ++it, ++pos){
+    for (; it != end; ++it, ++pos) {
         string termino = *it;
-        infoDoc.addNumPal();    // metemos 1 palabra
+        infoDoc.addNumPal();  // Añadimos una palabra total
 
-        if(tipoStemmer != 0){ // aplicamos stemming si está activado
+        if (tipoStemmer != 0) {
             stem.stemmer(termino, tipoStemmer);
         }
 
-        if(EsStopWord(stopWords, termino) || termino.length() <= 1) continue;     // filtrar las palabras no validas para el indice
-
-        // añadir al índice principal si ya existía
-        if(indice[termino].getFT() > 0 || TerminoEsNumero(termino) || informacionColeccionDocs.getNumTotalPal() < 50){
-            infoDoc.addNumPalSinParada();
-            if (indice[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm)) {
-                infoDoc.addNumPalDiferentes();
-            }
+        if (EsStopWord(stopWords, termino) || termino.length() <= 1) {
+            continue;
         }
-        else {
-            if (indice_sub[termino].getFT() == 0) {
-                indice_sub[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm);
-            }
-            else {
-                indice_sub.erase(termino);  // moverlo al índice principal
-                infoDoc.addNumPalSinParada();
-                if (indice[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm)) {
-                    infoDoc.addNumPalDiferentes();
-                }
-            }
+
+        // Añadimos al índice principal
+        infoDoc.addNumPalSinParada();
+        if (indice[termino].agregarPosicionADocumento(idDoc, pos, true)) {
+            infoDoc.addNumPalDiferentes();
         }
     }
-
-    indice_sub.clear();
 }
+
 
 
 void IndexadorHash::procesarDocumento(const string& rutaDocumento, int& idActual, stemmerPorter& stem) {
@@ -466,44 +452,43 @@ bool EsStopWord(const unordered_set<string>& stopWords, const string& token){   
     return stopWords.find(token) != stopWords.end();
 }
 
-bool IndexadorHash::IndexarPregunta(const string &preg){
+bool IndexadorHash::IndexarPregunta(const string& preg) {
+    almacenarPosTerm = true;
     indicePregunta.clear();
     infPregunta = InformacionPregunta();
     stemmerPorter stem;
 
     list<string> lista_tokens;
-    tok.Tokenizar(preg, lista_tokens);    // tokenizamos la pregunta
-    infPregunta.incrementarNPalabras(lista_tokens.size());    // actualizamos el total de palabras de la pregunta con la cantidad de tokens
+    tok.Tokenizar(preg, lista_tokens);  // tokenizamos la pregunta
+    infPregunta.incrementarNPalabras(lista_tokens.size());  // total de palabras
 
-    if(lista_tokens.empty()){
-        return false;
-    }
+    if (lista_tokens.empty()) return false;
 
-    // para cada token obtenido le aplicamos stem y lo indexamos si no es stopword
-    list<string>::iterator it = lista_tokens.begin();
     int pos = 0;
-
-    while(it != lista_tokens.end()){
-        string token = *it;
-        if(tipoStemmer != 0){
+    for (auto& token : lista_tokens) {
+        if (tipoStemmer != 0) {
             stem.stemmer(token, tipoStemmer);
         }
-        if(EsStopWord(stopWords, token) == false && token.length() > 1){
-            indicePregunta[token].addFT();
+
+        if (!EsStopWord(stopWords, token) && token.length() > 1) {
+            auto& infoTerm = indicePregunta[token];
+            infoTerm.addFT();
             infPregunta.incrementarNPalabrasSinParada(1);
-            if(almacenarPosTerm){
-                indicePregunta[token].addItemToPos(pos);
+            infPregunta.addTermino(token, pos, false);
+            if (almacenarPosTerm) {
+                infoTerm.addItemToPos(pos);
             }
         }
-        ++it;
+
         ++pos;
     }
 
-    infPregunta.incrementarNPalabrasDiferentes(indicePregunta.size());  // incrementamos la cantidad de palabras diferentes de la pregunta
+    infPregunta.incrementarNPalabrasDiferentes(indicePregunta.size());
     pregunta = preg;
 
     return true;
 }
+
 
 bool IndexadorHash::DevuelvePregunta(string &preg) const{
     if(pregunta.size() != 0){

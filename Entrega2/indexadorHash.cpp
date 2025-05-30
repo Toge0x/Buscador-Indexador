@@ -136,7 +136,7 @@ void IndexadorHash::procesarTokensDeDocumento(istream& archivoTokens, int idDoc,
         if(EsStopWord(stopWords, termino) || termino.length() <= 1) continue;     // filtrar las palabras no validas para el indice
 
         // añadir al índice principal si ya existía
-        if(indice[termino].getFT() > 0 || TerminoEsNumero(termino) || informacionColeccionDocs.getNumTotalPal() < 50){
+        if(indice[termino].getFT() > 0 || TerminoEsNumero(termino)){
             infoDoc.addNumPalSinParada();
             if (indice[termino].agregarPosicionADocumento(idDoc, pos, almacenarPosTerm)) {
                 infoDoc.addNumPalDiferentes();

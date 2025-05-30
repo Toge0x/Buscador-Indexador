@@ -9,35 +9,31 @@ using namespace std;
 int
 main(void)
 {
-IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, true);
+IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, true, "./indicePrueba", 0, true);
 
 string preg1;
 InformacionPregunta infPreg1;
+
+a.IndexarPregunta("pal1 yo pal2 pal1. PaL3 el  ");
+
 InformacionTerminoPregunta inf1;
 
-a.IndexarPregunta("pal1 yo pal2 pal1. pal3 el  ");
-a.IndexarPregunta("pal1 yo pal3 el  pal7");
-
-if(a.DevuelvePregunta(preg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << preg1 << endl;
+if(a.DevuelvePregunta("Pal3", inf1))
+	cout << "Pal3 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
 else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+	cout << "Pal3 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
 
-
-if(a.DevuelvePregunta("pal1", inf1))
-	cout << "pal1 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
+if(a.DevuelvePregunta("PaL3", inf1))
+	cout << "PaL3 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
 else
-	cout << "pal1 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
+	cout << "PaL3 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
 
-if(a.DevuelvePregunta("pal7", inf1))
-	cout << "pal7 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
-else
-	cout << "pal7 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
 
-if(a.DevuelvePregunta(infPreg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << infPreg1 << endl;
+if(a.DevuelvePregunta("pal3", inf1))
+	cout << "pal3 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
 else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+	cout << "pal3 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
+
 
 
 }

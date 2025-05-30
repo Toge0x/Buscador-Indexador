@@ -150,6 +150,7 @@ public:
     void addItemToPos(int pos);
     int getFT() const;
     list<int> getSortedPositions() const;
+    list<int> getPositions() const;
 private:
     int ft;	// Frecuencia total del termino en la pregunta
     list<int> posTerm;	

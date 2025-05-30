@@ -1,4 +1,5 @@
 #include "buscador.h"
+#include <fstream>
 #include <cmath>
 
 // ==================================================
@@ -10,6 +11,8 @@ ostream& operator<<(ostream& os, const ResultadoRI& res) {
     os << res.vSimilitud << "\t" << res.idDoc << "\t" << res.numPregunta << '\n';
     return os;
 }
+
+ResultadoRI::ResultadoRI() : vSimilitud(0.0), idDoc(0), numPregunta(0) {}
 
 ResultadoRI::ResultadoRI(const double& kvSimilitud, const long int& kidDoc, const int& np)
     : vSimilitud(kvSimilitud), idDoc(kidDoc), numPregunta(np) {}
@@ -31,6 +34,13 @@ bool ResultadoRI::operator<(const ResultadoRI& rhs) const {
         return vSimilitud < rhs.vSimilitud;
     else
         return numPregunta > rhs.numPregunta;
+}
+
+bool ResultadoRI::operator>(const ResultadoRI& rhs) const {
+    if (numPregunta == rhs.numPregunta)
+        return vSimilitud > rhs.vSimilitud;
+    else
+        return numPregunta < rhs.numPregunta;
 }
 
 // ==================================================
@@ -80,11 +90,52 @@ bool Buscador::Buscar(const int& numDocumentos){
     return Buscar(numDocumentos, 0);
 }
 
-vector<ResultadoRI> Buscador::calculoDFR(const int& numPregunta) {
+vector<ResultadoRI> Buscador::calculoDFR(const int& numPregunta){
     vector<ResultadoRI> resultados;
+    const auto& infCol = informacionColeccionDocs;
 
+    double avgdl = static_cast<double>(infCol.getNumTotalPalSinParada()) / infCol.getNumDocs();
+    int N = infCol.getNumDocs();
+
+    for(const auto& [ruta, doc] : indiceDocs){
+        double similitud = 0.0;
+        int ld = doc.getNumPalSinParada(); // Longitud del documento actual
+        for(const auto& [termino, infTermPreg] : indicePregunta){
+            auto itTerm = indice.find(termino);
+            if (itTerm != indice.end()) {
+                const auto& termDocs = itTerm->second.getLDocs();
+                int nt = termDocs.size(); // Número de documentos en los que aparece el término
+                int ft = itTerm->second.getFT(); // Frecuencia total del término en la colección (Ftc)
+                
+                double lambda = static_cast<double>(ft) / N; // Tu lambda ya está bien
+                
+                // Aquí es donde wtq se calcula como en tu segundo método
+                double wtq = static_cast<double>(infTermPreg.getFT()) / infPregunta.getNumTotalPalSinParada(); // Ojo: en tu segundo método es getNumTotalPal() no getNumTotalPalSinParada()
+                                                                                                                // Asegúrate cuál es el correcto para tu modelo.
+                                                                                                                // Si infPregunta.getNumTotalPal() es el que te funciona, úsalo.
+                                                                                                                // Si infPregunta.getNumTotalPalSinParada() es el que te funciona, úsalo.
+                auto itDocTerm = termDocs.find(doc.getIdDoc());
+                if(itDocTerm != termDocs.end()){
+                    int ftd_doc = itDocTerm->second.getFT(); // Frecuencia del término en el documento (ftd)
+
+                    // La fórmula para ftd_star es la misma
+                    double ftd_star = ftd_doc * log2(1.0 + (c * avgdl / static_cast<double>(ld)));
+                    
+                    // AQUI ESTÁ LA CORRECCIÓN CLAVE EN LA FÓRMULA DE wtd
+                    double wtd = (log2(1.0 + lambda) + (ftd_star * log2(1.0 + lambda)) / lambda) *
+                                 ((static_cast<double>(ft) + 1.0) / (static_cast<double>(nt) * (ftd_star + 1.0)));
+                    
+                    similitud += wtd * wtq;
+                }
+            }
+        }
+        if(similitud > 0.0){        // si el valor de similitud es mayor que 0 lo guardamos
+            resultados.emplace_back(similitud, doc.getIdDoc(), numPregunta);
+        }
+    }
     return resultados;
 }
+
 
 vector<ResultadoRI> Buscador::calculoBM25(const int& numPregunta) {
     vector<ResultadoRI> resultados;
@@ -92,27 +143,32 @@ vector<ResultadoRI> Buscador::calculoBM25(const int& numPregunta) {
     double avgdl = static_cast<double>(informacionColeccionDocs.getNumTotalPalSinParada()) / informacionColeccionDocs.getNumDocs();
     int N = informacionColeccionDocs.getNumDocs();
 
-    for(const auto& [ruta, doc] : indiceDocs){
+    for (const auto& [ruta, doc] : indiceDocs) {
         double similitud = 0.0;
-        for(const auto& [termino, infTermPreg] : indicePregunta){
+
+        for (const auto& [termino, infTermPreg] : indicePregunta) {
             auto itTerm = indice.find(termino);
-            if(itTerm != indice.end()){
+            if (itTerm != indice.end()) {
                 const auto& termDocs = itTerm->second.getLDocs();
                 auto itDocTerm = termDocs.find(doc.getIdDoc());
-                if (itDocTerm != termDocs.end()) {
-                    int ftd = itDocTerm->second.getFT();
-                    int df = termDocs.size();
-                    double idf = log2((N - df + 0.5) / (df + 0.5));
-                    double score = idf * (ftd * (k1 + 1)) / (ftd + k1 * (1 - b + b * (doc.getNumPalSinParada() / avgdl)));
 
-                    similitud += score;
+                if (itDocTerm != termDocs.end()) {
+                    double ftd = static_cast<double>(itDocTerm->second.getFT());
+                    double df = static_cast<double>(termDocs.size());
+
+                    if (ftd > 0) {
+                        double idf = log2((N - df + 0.5) / (df + 0.5));
+                        double K = ftd + k1 * (1.0 - b + b * (static_cast<double>(doc.getNumPalSinParada()) / avgdl));
+                        double score = idf * ((ftd * (k1 + 1.0)) / K);
+                        similitud += score;
+                    }
                 }
             }
         }
-        if(similitud > 0.0){
-            resultados.emplace_back(similitud, doc.getIdDoc(), numPregunta);
-        }
+
+        resultados.emplace_back(similitud, doc.getIdDoc(), numPregunta);
     }
+
     return resultados;
 }
 
@@ -140,8 +196,35 @@ bool Buscador::Buscar(const int& numDocumentos, const int& numPregunta){
 }
 
 bool Buscador::Buscar(const string& dirPreguntas, const int& numDocumentos, const int& numPregInicio, const int& numPregFin){
+    docsOrdenados = priority_queue<ResultadoRI>(); // Reiniciamos la cola de resultados
 
+    for (int i = numPregInicio; i <= numPregFin; ++i) {
+        string rutaPregunta = dirPreguntas + "/" + to_string(i) + ".txt";
+        ifstream fichero(rutaPregunta);
+
+        if(!fichero.is_open()){
+            cerr << "ERROR: No se pudo abrir la pregunta " << rutaPregunta << '\n';
+            return false;
+        }
+
+        string pregunta;
+        getline(fichero, pregunta);
+        fichero.close();
+
+        if(!IndexarPregunta(pregunta)){                 // indexamos la pregunta
+            cerr << "ERROR: No se pudo indexar la pregunta " << i << '\n';
+            return false;
+        }
+
+        if(!Buscar(numDocumentos, i)){                  // buscamos la pregunta
+            cerr << "ERROR: Falló la búsqueda para la pregunta " << i << '\n';
+            return false;
+        }
+    }
+
+    return true;
 }
+
 
 string Buscador::RecuperarNombreDocumento(const int& idDoc) const{
     for(const auto& [ruta, info] : indiceDocs){
@@ -157,46 +240,57 @@ string Buscador::RecuperarNombreDocumento(const int& idDoc) const{
     return "";
 }
 
-void Buscador::ImprimirResultadoBusqueda(const int& numDocumentos) const{
-    priority_queue<ResultadoRI> documentos;
-    documentos = docsOrdenados;
+void Buscador::ImprimirResultadoBusqueda(const int& numDocumentos) const {
+    priority_queue<ResultadoRI> documentos = docsOrdenados;
     string resultado;
-    int numPreg;
 
-    while(!documentos.empty()){
-        numPreg = documentos.top().NumPregunta();
+    while (!documentos.empty()) {
+        int numPreguntaActual = documentos.top().NumPregunta();
+        int count = 0;
 
-        for(int i = 0; i < numDocumentos; i++){
-            if(documentos.empty() || documentos.top().NumPregunta() != numPreg)
-                break;
+        while (!documentos.empty() && documentos.top().NumPregunta() == numPreguntaActual && count < numDocumentos) {
+            const ResultadoRI& res = documentos.top();
+            resultado += to_string(res.NumPregunta());
+            resultado += (formSimilitud == 0 ? " DFR " : " BM25 ");
+            resultado += RecuperarNombreDocumento(res.IdDoc()) + ' ';
+            resultado += to_string(count) + ' ';
+            resultado += to_string(res.VSimilitud()) + ' ';
 
-            int numPregunta = documentos.top().NumPregunta();
-            long int id = documentos.top().IdDoc();
-            double sim = documentos.top().VSimilitud();
-
-            resultado += to_string(numPregunta);                        // obtenemos la pregunta
-            resultado += (formSimilitud == 0 ? " DFR " : " BM25 ");     // obtenemos el tipo de modelo
-            resultado += RecuperarNombreDocumento(id) + ' ';            // obtenemos el nombre del documento
-            resultado += to_string(i) + ' ';                            // obtenemos el num documento
-            resultado += to_string(sim) + ' ';                          // obtenemos el valor de similitud
-
-            if(numPregunta == 0){
+            if (res.NumPregunta() == 0) {
                 string preg;
-                if(DevuelvePregunta(preg))
+                if (DevuelvePregunta(preg))
                     resultado += preg + '\n';
                 else
                     resultado += '\n';
-            }else{
+            } else {
                 resultado += "ConjuntoDePreguntas\n";
             }
+
+            documentos.pop();
+            count++;
+        }
+
+        while (!documentos.empty() && documentos.top().NumPregunta() == numPreguntaActual) {
             documentos.pop();
         }
     }
-    cout << resultado;
+
+    if (!resultado.empty()) {
+        cout << resultado;
+    }
 }
 
-bool Buscador::ImprimirResultadoBusqueda(const int& numDocumentos, const string& nombreFichero) const{
 
+bool Buscador::ImprimirResultadoBusqueda(const int& numDocumentos, const string& nombreFichero) const{
+    ofstream fichero(nombreFichero);
+    fichero.open(nombreFichero);
+    if(fichero.is_open() == false){
+        cerr << "ERROR: El fichero " << nombreFichero << " no se ha podido abrir\n";
+        return false;
+    }else{
+        this->ImprimirResultadoBusqueda(numDocumentos);
+        return true;
+    }
 }
 
 int Buscador::DevolverFormulaSimilitud() const {
@@ -229,3 +323,14 @@ void Buscador::DevolverParametrosBM25(double& kk1, double& kb) const {
     kb = b;
 }
 
+void Buscador::DevolverTerminosEnPregunta(){
+    cout << "VAMOS A DEVOLVER LOS TERMINOS INDEXADOS EN LA PREGUNTA" << endl;
+    const auto& terminos = infPregunta.getTerminos();
+    for (const auto& [termino, info] : terminos) {
+        cout << "Termino: " << termino;
+        cout << "\t Posiciones: ";
+        const auto& posiciones = info.getPositions();
+        for(const auto& pos : posiciones) {cout << pos << " ";}
+        cout << '\n';
+    }
+}
