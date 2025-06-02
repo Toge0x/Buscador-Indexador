@@ -53,59 +53,41 @@ class Buscador : public IndexadorHash {
         // Constructor para inicializar Buscador a partir de la indexación generada previamente
         // Se inicializa con el valor de similitud f y los valores por defecto: c = 2; k1 = 1.2; b = 0.75
         Buscador(const string& directorioIndexacion, const int& f);
-
         // Constructor de copia
         Buscador(const Buscador&);
-
         // Destructor
         ~Buscador();
-
         // Operador de asignación
         Buscador& operator=(const Buscador&);
-
         // Realiza la búsqueda sobre la pregunta actual indexada
         // Guarda los resultados más relevantes (hasta numDocumentos) en docsOrdenados
         bool Buscar(const int& numDocumentos = 99999);
-
         vector<ResultadoRI> calculoDFR(const int& numPregunta);
-
         vector<ResultadoRI> calculoBM25(const int& numPregunta);
-
         bool Buscar(const int& numDocumentos, const int& numPregunta);
-
         // Realiza la búsqueda sobre un conjunto de preguntas de un directorio
         // Se guarda el top numDocumentos por cada pregunta, entre numPregInicio y numPregFin
         bool Buscar(const string& dirPreguntas, const int& numDocumentos, const int& numPregInicio, const int& numPregFin);
-
         string RecuperarNombreDocumento(const int& idDoc) const;
-
         // Imprime por pantalla los resultados de la última búsqueda
         // Mostrará como máximo numDocumentos documentos por pregunta
         void ImprimirResultadoBusqueda(const int& numDocumentos) const;
-
         // Igual que la anterior, pero guarda la salida en un fichero
         // Devuelve false si no consigue crear el archivo
         bool ImprimirResultadoBusqueda(const int& numDocumentos, const string& nombreFichero) const;
-
         // Devuelve la fórmula de similitud actual (0 = DFR, 1 = BM25)
         int DevolverFormulaSimilitud() const;
-
         // Cambia la fórmula de similitud si el valor es válido (0 o 1)
         // Devuelve false si el valor no es válido
         bool CambiarFormulaSimilitud(const int& f);
-
         // Cambia el valor de la constante c del modelo DFR
         void CambiarParametrosDFR(const double& kc);
-
         // Devuelve el valor de la constante c del modelo DFR
         double DevolverParametrosDFR() const;
-
         // Cambia los valores de las constantes k1 y b del modelo BM25
         void CambiarParametrosBM25(const double& kk1, const double& kb);
-
         // Devuelve los valores de las constantes k1 y b del modelo BM25
         void DevolverParametrosBM25(double& kk1, double& kb) const;
-
         void DevolverTerminosEnPregunta();
 
     private:

@@ -1,3 +1,5 @@
+#ifndef _TOKENIZADOR_H_
+#define _TOKENIZADOR_H_
 #include <string.h>
 #include <ostream>
 #include <iostream>
@@ -53,3 +55,5 @@ class Tokenizador {
         */
         bool pasarAminuscSinAcentos;
 };
+
+#endif
