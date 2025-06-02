@@ -96,43 +96,45 @@ vector<ResultadoRI> Buscador::calculoDFR(const int& numPregunta){
 
     double avgdl = static_cast<double>(infCol.getNumTotalPalSinParada()) / infCol.getNumDocs();
     int N = infCol.getNumDocs();
+    int k = infPregunta.getNumTotalPalSinParada();
 
     for(const auto& [ruta, doc] : indiceDocs){
         double similitud = 0.0;
-        int ld = doc.getNumPalSinParada(); // Longitud del documento actual
+        int ld = doc.getNumPalSinParada();
+
         for(const auto& [termino, infTermPreg] : indicePregunta){
             auto itTerm = indice.find(termino);
             if (itTerm != indice.end()) {
                 const auto& termDocs = itTerm->second.getLDocs();
-                int nt = termDocs.size(); // Número de documentos en los que aparece el término
-                int ft = itTerm->second.getFT(); // Frecuencia total del término en la colección (Ftc)
-                
-                double lambda = static_cast<double>(ft) / N; // Tu lambda ya está bien
-                
-                // Aquí es donde wtq se calcula como en tu segundo método
-                double wtq = static_cast<double>(infTermPreg.getFT()) / infPregunta.getNumTotalPalSinParada(); // Ojo: en tu segundo método es getNumTotalPal() no getNumTotalPalSinParada()
-                                                                                                                // Asegúrate cuál es el correcto para tu modelo.
-                                                                                                                // Si infPregunta.getNumTotalPal() es el que te funciona, úsalo.
-                                                                                                                // Si infPregunta.getNumTotalPalSinParada() es el que te funciona, úsalo.
+                int nt = termDocs.size();
+                int ft = itTerm->second.getFT();
+
+                double lambda = static_cast<double>(ft) / N;
+                double logLambda = log2(1.0 + lambda);
+                double ratioLambda = log2((1.0 + lambda) / lambda);
+
+                double wtq = static_cast<double>(infTermPreg.getFT()) / k;
+
                 auto itDocTerm = termDocs.find(doc.getIdDoc());
                 if(itDocTerm != termDocs.end()){
-                    int ftd_doc = itDocTerm->second.getFT(); // Frecuencia del término en el documento (ftd)
+                    int ftd_doc = itDocTerm->second.getFT();
 
-                    // La fórmula para ftd_star es la misma
                     double ftd_star = ftd_doc * log2(1.0 + (c * avgdl / static_cast<double>(ld)));
-                    
-                    // AQUI ESTÁ LA CORRECCIÓN CLAVE EN LA FÓRMULA DE wtd
-                    double wtd = (log2(1.0 + lambda) + (ftd_star * log2(1.0 + lambda)) / lambda) *
+
+                    double wtd = (logLambda + ftd_star * ratioLambda) *
                                  ((static_cast<double>(ft) + 1.0) / (static_cast<double>(nt) * (ftd_star + 1.0)));
-                    
-                    similitud += wtd * wtq;
+
+                    similitud += wtq * wtd;
                 }
             }
         }
-        if(similitud > 0.0){        // si el valor de similitud es mayor que 0 lo guardamos
+
+        if(similitud > 0.0){
+            similitud *= 2;     // no sé porque sale la mitad de similitud
             resultados.emplace_back(similitud, doc.getIdDoc(), numPregunta);
         }
     }
+
     return resultados;
 }
 
