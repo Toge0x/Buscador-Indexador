@@ -21,26 +21,19 @@ double getcputime(void) {
 
 int
 main() { 
-	IndexadorHash b("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePruebaEspanyol", 0, false); 
+	IndexadorHash b("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePruebaEspanyol", 1, false); 
 	b.Indexar("ficherosTimes.txt"); 
 	b.GuardarIndexacion(); 
  
-	Buscador a("./indicePruebaEspanyol", 0); 
+	Buscador a("./indicePruebaEspanyol", 1); 
  
 	a.IndexarPregunta("KENNEDY  ADMINISTRATION  PRESSURE  ON  NGO  DINH  DIEM  TO STOP SUPPRESSING THE BUDDHISTS . ");
-	a.CambiarFormulaSimilitud(1);
-	double aa = getcputime(); 
-	a.Buscar(423); 
-	a.ImprimirResultadoBusqueda(423); 
-	
-	double bb=getcputime()-aa; 
-	cout << "\nHa tardado " << bb << " segundos\n\n"; 
 	
 	time_t inicioB, finB; 
 	time(&inicioB); 
 	double aaB = getcputime(); 
 	a.Buscar("./CorpusTime/Preguntas/", 423, 1, 83);
-	a.ImprimirResultadoBusqueda(423); 
+	a.ImprimirResultadoBusqueda(423, "fich_salida_buscador_alumno.txt"); 
 	
 	double bbB = getcputime() - aaB; 
 	cout << "\nHa tardado " << bbB << " segundos\n\n";
